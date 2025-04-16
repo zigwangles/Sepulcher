@@ -16,8 +16,6 @@ export class Game {
     this.gameStartTime = 0;
     this.score = 0;
     this.health = 100;
-    this.timeSinceLastWeaponOffer = 0; // Added: Timer for weapon offer
-    this.weaponOfferInterval = 60; // Added: Interval in seconds
     
     this.setupRenderer();
     this.setupCamera();
@@ -41,9 +39,6 @@ export class Game {
     this.setupResizeHandler();
     
     this.lastTime = 0;
-    
-    // Reset timer for weapon offer
-    this.timeSinceLastWeaponOffer = 0;
     
     // Render a single frame to show the game background behind the menu
     this.renderer.render(this.scene, this.camera);
@@ -104,9 +99,6 @@ export class Game {
     this.weaponManager.dispose();
     this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
     
-    // Reset timer for weapon offer
-    this.timeSinceLastWeaponOffer = 0;
-    
     // Show starter weapon selection
     this.showStarterWeaponSelection();
     
@@ -137,19 +129,6 @@ export class Game {
     // Update HUD
     this.hud.update(delta);
     
-    // Update time since last weapon offer
-    this.timeSinceLastWeaponOffer += delta;
-    
-    // Check if it's time to offer a new weapon
-    if (this.timeSinceLastWeaponOffer >= this.weaponOfferInterval) {
-      console.log("Time-based weapon offer triggered.");
-      this.showWeaponSelection();
-      this.timeSinceLastWeaponOffer = 0; // Reset timer after showing
-      // Return early to avoid potential double-trigger with score milestone in the same frame
-      this.renderer.render(this.scene, this.camera); // Render before returning
-      return;
-    }
-    
     // Update player position based on input
     const direction = this.inputHandler.getDirection();
     this.player.move(direction, delta);
@@ -174,14 +153,15 @@ export class Game {
         this.score += hit.enemy.value;
         this.hud.updateScore(this.score);
         
-        // Offer weapon selection at score milestones
-        const previousScoreMilestone = Math.floor((this.score - hit.enemy.value) / 100);
-        const currentScoreMilestone = Math.floor(this.score / 100);
+        // Offer weapon selection at score milestones (every 200 points)
+        const scoreMilestone = 200;
+        const previousScoreMilestone = Math.floor((this.score - hit.enemy.value) / scoreMilestone);
+        const currentScoreMilestone = Math.floor(this.score / scoreMilestone);
         
         if (currentScoreMilestone > previousScoreMilestone) {
-          // We just crossed a 100-point milestone
+          // We just crossed a 200-point milestone
           this.weaponManager.lastScoreCheck = currentScoreMilestone;
-          console.log("Score milestone reached:", currentScoreMilestone * 100);
+          console.log("Score milestone reached:", currentScoreMilestone * scoreMilestone);
           this.showWeaponSelection();
         }
       }
@@ -212,14 +192,15 @@ export class Game {
       this.score += scoreGain;
       this.hud.updateScore(this.score);
       
-      // Check for score milestone after adding enemy kills
-      const previousScoreMilestone = Math.floor((this.score - scoreGain) / 100);
-      const currentScoreMilestone = Math.floor(this.score / 100);
+      // Check for score milestone after adding enemy kills (every 200 points)
+      const scoreMilestone = 200;
+      const previousScoreMilestone = Math.floor((this.score - scoreGain) / scoreMilestone);
+      const currentScoreMilestone = Math.floor(this.score / scoreMilestone);
       
       if (currentScoreMilestone > previousScoreMilestone) {
-        // We just crossed a 100-point milestone from enemy kills
+        // We just crossed a 200-point milestone from enemy kills
         this.weaponManager.lastScoreCheck = currentScoreMilestone;
-        console.log("Score milestone reached from kills:", currentScoreMilestone * 100);
+        console.log("Score milestone reached from kills:", currentScoreMilestone * scoreMilestone);
         this.showWeaponSelection();
       }
     }
