@@ -243,19 +243,20 @@ export class WeaponSelectionMenu {
   
   selectWeapon(index) {
     if (this.onSelectCallback && index >= 0 && index < this.weaponOptions.length) {
-      this.onSelectCallback(this.weaponOptions[index]);
-      this.hide();
+      const selectedWeapon = this.weaponOptions[index]; // Store selection first
+      this.hide(); // Hide menu & resume game BEFORE processing selection
+      this.onSelectCallback(selectedWeapon); // Process selection AFTER hide/resume
     }
   }
   
   hide() {
-    // Resume the game before hiding
+    this.active = false;
+    this.menuElement.style.display = 'none'; // Hide visually first
+
+    // Resume the game AFTER hiding visually
     if (this.onResumeCallback) {
         this.onResumeCallback();
     }
-
-    this.active = false;
-    this.menuElement.style.display = 'none';
   }
   
   isActive() {
