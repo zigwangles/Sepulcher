@@ -25,7 +25,7 @@ export class WeaponManager {
   }
   
   update(delta, score, enemies) {
-    // Make enemies available to weapons for targeting
+    // Make enemies available to weapons for targeting *before* updating them
     window.gameEnemies = enemies;
     
     // Update all weapons and collect hits
@@ -41,7 +41,10 @@ export class WeaponManager {
       allHits = allHits.concat(hits);
     }
     
-    // Reset the available weapons whenever we check
+    // No longer needed here, weapons can access it directly via window
+    // window.gameEnemies = enemies;
+    
+    // Regenerate available weapons based on score and current arsenal
     this.regenerateAvailableWeapons();
     
     return allHits;
