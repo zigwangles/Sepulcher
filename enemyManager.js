@@ -1,5 +1,5 @@
+import { Enemy } from './enemy.js';
 import * as THREE from 'three';
-import { Enemy } from 'enemy';
 
 export class EnemyManager {
   constructor(scene, player) {
