@@ -110,7 +110,6 @@ export class MainMenu {
       menuItemElement.style.width = '250px'; // Set a fixed width for alignment
       menuItemElement.style.justifyContent = 'flex-start'; // Align icon and text left
       menuItemElement.style.marginBottom = '15px';
-      menuItemElement.style.pointerEvents = 'auto'; // *** Force pointer events ***
 
       menuItemElement.addEventListener('click', () => {
           console.log(`Menu item clicked: ${item.text}`); // ADD LOGGING
