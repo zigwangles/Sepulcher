@@ -1,0 +1,17 @@
+# Vercel
+.vercel
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Editor specific
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db 
