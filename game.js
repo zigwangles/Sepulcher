@@ -249,6 +249,9 @@ export class Game {
       // Add the selected weapon to the player's arsenal
       this.weaponManager.addWeapon(selectedWeapon);
       
+      // Push back enemies after selection
+      this.pushbackEnemies();
+
       // Resume is handled by the menu's hide method now
     }, pauseGame, resumeGame); // Pass pause/resume functions
   }
@@ -270,11 +273,43 @@ export class Game {
         this.weaponManager.addWeapon(selectedWeapon);
         this.hasSelectedStarterWeapon = true;
         
+        // Push back enemies after selection
+        this.pushbackEnemies();
+
         // Resume is handled by the menu's hide method now
       },
       pauseGame, // Pass pause function
       resumeGame // Pass resume function
     );
+  }
+  
+  pushbackEnemies() {
+    const playerPosition = this.player.mesh.position;
+    const pushbackDistance = 2.5; // 5 * player radius (0.5)
+    const pushDirection = new THREE.Vector3();
+    
+    this.enemyManager.enemies.forEach(enemy => {
+      if (enemy.isAlive) {
+        // Calculate direction from player to enemy
+        pushDirection.subVectors(enemy.mesh.position, playerPosition);
+        pushDirection.y = 0; // Keep pushback on the horizontal plane
+        
+        if (pushDirection.lengthSq() > 0.001) { // Avoid division by zero if enemy is exactly on player
+            pushDirection.normalize();
+            
+            // Calculate new position
+            const newPosition = new THREE.Vector3();
+            newPosition.copy(enemy.mesh.position).addScaledVector(pushDirection, pushbackDistance);
+            
+            // Update enemy position
+            enemy.mesh.position.copy(newPosition);
+        } else {
+            // If enemy is too close, just push it in a default direction (e.g., positive X)
+            const defaultPush = new THREE.Vector3(pushbackDistance, 0, 0);
+            enemy.mesh.position.add(defaultPush);
+        }
+      }
+    });
   }
   
   // Method was defined twice - removed duplicate setupResizeHandler
