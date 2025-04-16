@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { Game } from 'game';
-import { MainMenu } from 'mainMenu';
+import { Game } from './game.js';
+import { MainMenu } from './mainMenu.js';
 // Store a global reference to running game
 window.gameInstance = null;
 // Get the render target
