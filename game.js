@@ -224,12 +224,6 @@ export class Game {
       }
     }
     
-    // Natural score increase over time
-    if (Math.random() < 0.005) {
-      this.score += 5;
-      this.hud.updateScore(this.score);
-    }
-    
     // Render the scene
     this.renderer.render(this.scene, this.camera);
   }
