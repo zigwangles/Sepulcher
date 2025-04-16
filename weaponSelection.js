@@ -5,6 +5,8 @@ export class WeaponSelectionMenu {
   constructor(container) {
     this.container = container;
     this.onSelectCallback = null;
+    this.onPauseCallback = null;
+    this.onResumeCallback = null;
     this.weaponOptions = [];
     this.active = false;
     this.customTitle = null;
@@ -82,11 +84,18 @@ export class WeaponSelectionMenu {
     handleResize();
   }
   
-  show(weaponOptions, callback) {
+  show(weaponOptions, callback, onPause, onResume) {
     this.weaponOptions = weaponOptions;
     this.onSelectCallback = callback;
+    this.onPauseCallback = onPause;
+    this.onResumeCallback = onResume;
     this.active = true;
     this.titleElement.textContent = 'SELECT NEW WEAPON';
+    
+    // Pause the game
+    if (this.onPauseCallback) {
+        this.onPauseCallback();
+    }
     
     // Clear previous options
     while (this.optionsContainer.firstChild) {
@@ -103,9 +112,9 @@ export class WeaponSelectionMenu {
     this.menuElement.style.display = 'flex';
   }
   
-  showWithTitle(weaponOptions, title, callback) {
+  showWithTitle(weaponOptions, title, callback, onPause, onResume) {
     this.titleElement.textContent = title;
-    this.show(weaponOptions, callback);
+    this.show(weaponOptions, callback, onPause, onResume);
   }
   
   createWeaponCard(weapon, index) {
@@ -240,6 +249,11 @@ export class WeaponSelectionMenu {
   }
   
   hide() {
+    // Resume the game before hiding
+    if (this.onResumeCallback) {
+        this.onResumeCallback();
+    }
+
     this.active = false;
     this.menuElement.style.display = 'none';
   }
