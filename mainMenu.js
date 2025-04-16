@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 
 export class MainMenu {
-  constructor(container, startGameCallback) {
+  constructor(container, startGameCallback, showSettingsCallback) {
     this.container = container;
     this.startGameCallback = startGameCallback;
+    this.showSettingsCallback = showSettingsCallback;
     this.active = true;
     
     this.createMenu();
@@ -52,6 +53,20 @@ export class MainMenu {
     this.startButton.style.boxShadow = '0 0 10px #ff5500';
     this.startButton.style.transition = 'transform 0.2s, background-color 0.2s';
     
+    // Create settings button
+    this.settingsButton = document.createElement('button');
+    this.settingsButton.textContent = 'SETTINGS';
+    this.settingsButton.style.padding = '1rem 2rem';
+    this.settingsButton.style.fontSize = '1.5rem';
+    this.settingsButton.style.backgroundColor = '#555555';
+    this.settingsButton.style.color = '#fff';
+    this.settingsButton.style.border = 'none';
+    this.settingsButton.style.borderRadius = '5px';
+    this.settingsButton.style.cursor = 'pointer';
+    this.settingsButton.style.marginBottom = '1rem';
+    this.settingsButton.style.boxShadow = '0 0 10px #aaaaaa';
+    this.settingsButton.style.transition = 'transform 0.2s, background-color 0.2s';
+    
     // Create how to play section
     const howToPlay = document.createElement('div');
     howToPlay.style.marginTop = '2rem';
@@ -85,6 +100,17 @@ export class MainMenu {
       this.startButton.style.backgroundColor = '#aa0000';
       this.startButton.style.transform = 'scale(1)';
     });
+
+    // Add hover effect for settings button
+    this.settingsButton.addEventListener('mouseover', () => {
+      this.settingsButton.style.backgroundColor = '#777777';
+      this.settingsButton.style.transform = 'scale(1.1)';
+    });
+
+    this.settingsButton.addEventListener('mouseout', () => {
+      this.settingsButton.style.backgroundColor = '#555555';
+      this.settingsButton.style.transform = 'scale(1)';
+    });
     
     // Append elements to menu
     howToPlay.appendChild(howToPlayTitle);
@@ -93,6 +119,7 @@ export class MainMenu {
     
     this.menuElement.appendChild(title);
     this.menuElement.appendChild(this.startButton);
+    this.menuElement.appendChild(this.settingsButton);
     this.menuElement.appendChild(howToPlay);
     
     // Append menu to container
@@ -132,6 +159,19 @@ export class MainMenu {
       e.preventDefault();
       this.hide();
       this.startGameCallback();
+    });
+
+    // Settings button listener
+    this.settingsButton.addEventListener('click', () => {
+      this.hide();
+      this.showSettingsCallback();
+    });
+    
+    // Add touch support for settings button
+    this.settingsButton.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      this.hide();
+      this.showSettingsCallback();
     });
   }
   
