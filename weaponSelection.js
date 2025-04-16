@@ -1,3 +1,6 @@
+import * as THREE from 'three';
+import { getCategoryColor, getCategoryIcon, getCategoryDescription } from './weapon.js';
+
 export class WeaponSelectionMenu {
   constructor(container) {
     this.container = container;
