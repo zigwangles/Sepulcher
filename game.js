@@ -183,7 +183,6 @@ export class Game {
           this.weaponManager.lastScoreCheck = currentScoreMilestone;
           console.log("Score milestone reached:", currentScoreMilestone * 100);
           this.showWeaponSelection();
-          this.timeSinceLastWeaponOffer = 0; // Reset time based offer as well
         }
       }
     }
@@ -222,7 +221,6 @@ export class Game {
         this.weaponManager.lastScoreCheck = currentScoreMilestone;
         console.log("Score milestone reached from kills:", currentScoreMilestone * 100);
         this.showWeaponSelection();
-        this.timeSinceLastWeaponOffer = 0; // Reset time based offer as well
       }
     }
     
