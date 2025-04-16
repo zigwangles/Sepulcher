@@ -47,7 +47,7 @@ button:hover, .menu-item:hover, .weapon-card:hover { /* Added .weapon-card */
     width: 100vw;
     height: 100vh;
     display: block; /* Ensure it takes up space */
-    z-index: -1; /* Place canvas behind UI elements */
+    z-index: 1; /* Place canvas behind UI elements */
 }
 
 canvas {
