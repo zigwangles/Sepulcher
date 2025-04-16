@@ -4,53 +4,45 @@ export class HUD {
     this.gameTime = 0;
     this.score = 0;
     this.health = 100;
+    this.hudElement = null; // Initialize
     
     this.createHUD();
+    // Add listener for resize to update layout
+    window.addEventListener('resize', () => this.updateResponsiveLayout());
   }
   
   createHUD() {
+    // Remove existing HUD if it exists
+    if (this.hudElement && this.hudElement.parentNode) {
+      this.hudElement.parentNode.removeChild(this.hudElement);
+    }
+
     // Create HUD container
     this.hudElement = document.createElement('div');
-    this.hudElement.className = 'game-hud';
-    this.hudElement.style.position = 'absolute';
-    this.hudElement.style.top = '0';
-    this.hudElement.style.left = '0';
-    this.hudElement.style.width = '100%';
-    this.hudElement.style.padding = '10px';
-    this.hudElement.style.boxSizing = 'border-box';
-    this.hudElement.style.display = 'flex';
-    this.hudElement.style.justifyContent = 'space-between';
-    this.hudElement.style.alignItems = 'flex-start';
-    this.hudElement.style.color = '#fff';
-    this.hudElement.style.fontFamily = 'Arial, sans-serif';
-    this.hudElement.style.pointerEvents = 'none'; // Make HUD not block clicks/touches
-    this.hudElement.style.zIndex = '10';
+    this.hudElement.id = 'game-hud'; // Add ID
+    this.hudElement.className = 'game-hud'; // Add class for styling
+    // Most styles handled by CSS now
+    // Remove inline: position, top, left, width, padding, boxSizing, display, justifyContent, alignItems, color, fontFamily, zIndex
+    // Keep pointerEvents
+    this.hudElement.style.pointerEvents = 'none';
     
     // Create left panel (health)
     const leftPanel = document.createElement('div');
-    leftPanel.style.display = 'flex';
-    leftPanel.style.flexDirection = 'column';
-    leftPanel.style.alignItems = 'flex-start';
+    leftPanel.className = 'hud-panel hud-panel-left';
+    // Remove inline styles
     
     const healthLabel = document.createElement('div');
+    healthLabel.className = 'hud-label';
     healthLabel.textContent = 'HEALTH';
-    healthLabel.style.fontSize = '0.8rem';
-    healthLabel.style.opacity = '0.8';
-    healthLabel.style.marginBottom = '5px';
+    // Remove inline styles
     
     this.healthBar = document.createElement('div');
-    this.healthBar.style.width = '120px';
-    this.healthBar.style.height = '15px';
-    this.healthBar.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
-    this.healthBar.style.border = '1px solid #888';
-    this.healthBar.style.borderRadius = '3px';
-    this.healthBar.style.overflow = 'hidden';
+    this.healthBar.className = 'hud-health-bar';
+    // Remove inline styles
     
     this.healthFill = document.createElement('div');
-    this.healthFill.style.width = '100%';
-    this.healthFill.style.height = '100%';
-    this.healthFill.style.backgroundColor = '#ff3333';
-    this.healthFill.style.transition = 'width 0.3s';
+    this.healthFill.className = 'hud-health-fill';
+    // Remove inline styles
     
     this.healthBar.appendChild(this.healthFill);
     leftPanel.appendChild(healthLabel);
@@ -58,44 +50,36 @@ export class HUD {
     
     // Create center panel (time)
     const centerPanel = document.createElement('div');
-    centerPanel.style.display = 'flex';
-    centerPanel.style.flexDirection = 'column';
-    centerPanel.style.alignItems = 'center';
-    centerPanel.style.textAlign = 'center';
+    centerPanel.className = 'hud-panel hud-panel-center';
+    // Remove inline styles
     
     const timeLabel = document.createElement('div');
+    timeLabel.className = 'hud-label';
     timeLabel.textContent = 'TIME';
-    timeLabel.style.fontSize = '0.8rem';
-    timeLabel.style.opacity = '0.8';
-    timeLabel.style.marginBottom = '5px';
+    // Remove inline styles
     
     this.timeDisplay = document.createElement('div');
+    this.timeDisplay.className = 'hud-value hud-time';
     this.timeDisplay.textContent = '00:00';
-    this.timeDisplay.style.fontSize = '1.5rem';
-    this.timeDisplay.style.fontWeight = 'bold';
-    this.timeDisplay.style.textShadow = '0 0 5px #000';
+    // Remove inline styles
     
     centerPanel.appendChild(timeLabel);
     centerPanel.appendChild(this.timeDisplay);
     
     // Create right panel (score)
     const rightPanel = document.createElement('div');
-    rightPanel.style.display = 'flex';
-    rightPanel.style.flexDirection = 'column';
-    rightPanel.style.alignItems = 'flex-end';
-    rightPanel.style.textAlign = 'right';
+    rightPanel.className = 'hud-panel hud-panel-right';
+    // Remove inline styles
     
     const scoreLabel = document.createElement('div');
+    scoreLabel.className = 'hud-label';
     scoreLabel.textContent = 'SCORE';
-    scoreLabel.style.fontSize = '0.8rem';
-    scoreLabel.style.opacity = '0.8';
-    scoreLabel.style.marginBottom = '5px';
+    // Remove inline styles
     
     this.scoreDisplay = document.createElement('div');
+    this.scoreDisplay.className = 'hud-value hud-score';
     this.scoreDisplay.textContent = '0';
-    this.scoreDisplay.style.fontSize = '1.5rem';
-    this.scoreDisplay.style.fontWeight = 'bold';
-    this.scoreDisplay.style.textShadow = '0 0 5px #000';
+    // Remove inline styles
     
     rightPanel.appendChild(scoreLabel);
     rightPanel.appendChild(this.scoreDisplay);
@@ -108,6 +92,10 @@ export class HUD {
     // Append HUD to container
     this.container.appendChild(this.hudElement);
     
+    // Apply initial styles and layout
+    this.updateHealth(this.health); // Apply initial health bar style
+    this.updateResponsiveLayout(); // Apply initial layout
+    
     // Initially hide the HUD
     this.hide();
   }
@@ -119,87 +107,86 @@ export class HUD {
     // Format time as MM:SS
     const minutes = Math.floor(this.gameTime / 60);
     const seconds = Math.floor(this.gameTime % 60);
-    this.timeDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    
-    // Update health bar
-    this.healthFill.style.width = `${this.health}%`;
-    
-    // Update health bar color based on remaining health
-    if (this.health > 60) {
-      this.healthFill.style.backgroundColor = '#33cc33'; // Green for high health
-    } else if (this.health > 30) {
-      this.healthFill.style.backgroundColor = '#ffcc00'; // Yellow for medium health
-    } else {
-      this.healthFill.style.backgroundColor = '#ff3333'; // Red for low health
+    if (this.timeDisplay) { // Check if element exists
+        this.timeDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
     
-    // Update score
-    this.scoreDisplay.textContent = this.score.toString();
+    // Health bar width/color is updated in updateHealth
+    
+    // Update score is handled in updateScore
+    // if (this.scoreDisplay) { // Check if element exists
+    //     this.scoreDisplay.textContent = this.score.toString();
+    // }
   }
   
   updateScore(newScore) {
     this.score = newScore;
+    if (!this.scoreDisplay) return; // Guard clause
     this.scoreDisplay.textContent = this.score.toString();
     
-    // Add a flash effect when score changes
-    this.scoreDisplay.style.transform = 'scale(1.2)';
-    this.scoreDisplay.style.color = '#ffcc00';
-    
+    // Add a flash effect using classes
+    this.scoreDisplay.classList.add('flash');
+    // Remove the class after the animation duration (match CSS)
     setTimeout(() => {
-      this.scoreDisplay.style.transform = 'scale(1)';
-      this.scoreDisplay.style.color = '#fff';
-    }, 300);
+        if (this.scoreDisplay) this.scoreDisplay.classList.remove('flash');
+    }, 300); 
   }
   
   updateHealth(newHealth) {
+    const oldHealth = this.health;
     this.health = Math.max(0, Math.min(100, newHealth)); // Clamp between 0-100
+    
+    if (!this.healthFill || !this.healthBar) return; // Guard clauses
+
     this.healthFill.style.width = `${this.health}%`;
     
-    // Update color based on remaining health
-    if (this.health > 60) {
-      this.healthFill.style.backgroundColor = '#33cc33';
-    } else if (this.health > 30) {
-      this.healthFill.style.backgroundColor = '#ffcc00';
-    } else {
-      this.healthFill.style.backgroundColor = '#ff3333';
+    // Update color based on remaining health using classes or direct style
+    let colorClass = 'health-high';
+    if (this.health <= 30) {
+        colorClass = 'health-low';
+    } else if (this.health <= 60) {
+        colorClass = 'health-medium';
     }
+    // Remove old classes, add new one
+    this.healthFill.classList.remove('health-high', 'health-medium', 'health-low');
+    this.healthFill.classList.add(colorClass);
     
     // Add shake effect when health decreases
-    if (newHealth < this.health) {
-      this.healthBar.style.transform = 'translateX(3px)';
-      setTimeout(() => {
-        this.healthBar.style.transform = 'translateX(-3px)';
+    if (newHealth < oldHealth) {
+        this.healthBar.classList.add('shake');
+        // Remove the class after animation duration
         setTimeout(() => {
-          this.healthBar.style.transform = 'translateX(0)';
-        }, 100);
-      }, 100);
+            if (this.healthBar) this.healthBar.classList.remove('shake');
+        }, 200); // Match CSS animation duration
     }
   }
   
   show() {
-    this.hudElement.style.display = 'flex';
+    if (this.hudElement) {
+        this.hudElement.style.display = 'flex';
+        this.updateResponsiveLayout(); // Ensure layout is correct when shown
+    }
   }
   
   hide() {
-    this.hudElement.style.display = 'none';
+    if (this.hudElement) {
+        this.hudElement.style.display = 'none';
+    }
   }
   
-  // Make HUD responsive
+  // Make HUD responsive - simpler version, specific styles in CSS
   updateResponsiveLayout() {
-    if (window.innerWidth < 600) {
-      // Mobile layout
-      this.hudElement.style.flexDirection = 'row';
-      this.hudElement.style.padding = '5px';
-      this.timeDisplay.style.fontSize = '1.2rem';
-      this.scoreDisplay.style.fontSize = '1.2rem';
-      this.healthBar.style.width = '80px';
-    } else {
-      // Desktop layout
-      this.hudElement.style.flexDirection = 'row';
-      this.hudElement.style.padding = '10px';
-      this.timeDisplay.style.fontSize = '1.5rem';
-      this.scoreDisplay.style.fontSize = '1.5rem';
-      this.healthBar.style.width = '120px';
+    // Logic can be simplified if CSS media queries handle layout changes
+    // This function might still be needed for dynamic adjustments
+    // console.log('Updating responsive layout');
+  }
+  
+  // Add dispose method to remove element and listeners
+  dispose() {
+    if (this.hudElement && this.hudElement.parentNode) {
+        this.hudElement.parentNode.removeChild(this.hudElement);
     }
+    this.hudElement = null;
+    window.removeEventListener('resize', this.updateResponsiveLayout);
   }
 }
