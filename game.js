@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { Player } from 'player';
-import { GridManager } from 'gridManager';
-import { InputHandler } from 'inputHandler';
-import { HUD } from 'hud';
-import { EnemyManager } from 'enemyManager';
-import { WeaponManager } from 'weaponManager';
-import { WeaponSelectionMenu } from 'weaponSelectionMenu';
+import { Player } from './player.js';
+import { GridManager } from './gridManager.js';
+import { InputHandler } from './inputHandler.js';
+import { HUD } from './hud.js';
+import { EnemyManager } from './enemyManager.js';
+import { WeaponManager } from './weaponManager.js';
+import { WeaponSelectionMenu } from './weaponSelectionMenu.js';
 
 export class Game {
   constructor(container) {
