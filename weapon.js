@@ -1557,3 +1557,223 @@ export function getCategoryDescription(category) {
       return "Unknown attack type";
   }
 }
+
+// Leeching Tendrils Weapon
+export class LeechingTendrils extends Weapon {
+  constructor(scene, player) {
+    super(scene, player);
+    this.name = "Leeching Tendrils";
+    this.description = "Launches 3 tendrils latching onto the closest enemies, draining their health.";
+    this.cooldownTime = 4.0; // Cooldown after tendrils retract
+    this.damage = 8; // Damage per drain tick
+    this.color = 0x5a009c; // A slightly different dark purple
+    this.category = WeaponCategory.DARKNESS;
+    this.numberOfTendrils = 3;
+    this.healthReturn = 0.15; // 15% of damage dealt returns as health
+    this.drainInterval = 0.4; // Drain health every 0.4 seconds
+
+    this.activeTendrils = []; // Store { target: enemy, segments: [], drainTimer: 0 }
+  }
+
+  // Override fire to target multiple enemies
+  fire() {
+    // Find the closest N enemies
+    const enemies = window.gameEnemies || [];
+    const aliveEnemies = enemies.filter(enemy => enemy.isAlive);
+
+    // Sort enemies by distance to player
+    aliveEnemies.sort((a, b) => {
+      const distA = new THREE.Vector3()
+        .subVectors(a.mesh.position, this.player.mesh.position)
+        .length();
+      const distB = new THREE.Vector3()
+        .subVectors(b.mesh.position, this.player.mesh.position)
+        .length();
+      return distA - distB;
+    });
+
+    // Take up to numberOfTendrils closest enemies
+    const targets = aliveEnemies.slice(0, this.numberOfTendrils);
+
+    // Create a tendril for each target
+    for (const target of targets) {
+      this.createTendril(target);
+    }
+  }
+
+  createTendril(targetEnemy) {
+    const tendrilData = {
+      target: targetEnemy,
+      segments: [],
+      drainTimer: 0,
+      uniqueId: Math.random().toString(36).substring(7) // For potential debugging
+    };
+    this.activeTendrils.push(tendrilData);
+
+    // Initial draw
+    this.updateTendrilGeometry(tendrilData);
+  }
+
+  // Override update to manage tendrils
+  update(delta) {
+    // Update cooldown
+    if (this.cooldown > 0) {
+      this.cooldown -= delta;
+    }
+
+    // Update active tendrils
+    let allRetracted = true;
+    if (this.activeTendrils.length > 0) {
+      allRetracted = false; // Assume not all retracted if any are active
+
+      for (let i = this.activeTendrils.length - 1; i >= 0; i--) {
+        const tendril = this.activeTendrils[i];
+
+        // Check if target enemy is still alive
+        if (!tendril.target || !tendril.target.isAlive) {
+          this.removeTendril(i);
+          continue; // Move to next tendril
+        }
+
+        // Update visual geometry
+        this.updateTendrilGeometry(tendril);
+
+        // Drain health at intervals
+        tendril.drainTimer += delta;
+        if (tendril.drainTimer >= this.drainInterval) {
+          this.drainEnemyHealth(tendril);
+          tendril.drainTimer = 0; // Reset timer
+        }
+      }
+
+      // If, after updates, there are no active tendrils left, set flag
+      if (this.activeTendrils.length === 0) {
+        allRetracted = true;
+      }
+
+    }
+
+
+    // Fire automatically if cooldown is ready AND all previous tendrils are gone
+    if (this.cooldown <= 0 && this.active && allRetracted) {
+      this.fire();
+      this.cooldown = this.cooldownTime;
+    }
+  }
+
+  updateTendrilGeometry(tendril) {
+    // Remove existing segments first
+    for (const segment of tendril.segments) {
+      this.scene.remove(segment);
+      // Safely dispose geometry and material
+      if (segment.geometry) segment.geometry.dispose();
+      if (segment.material) segment.material.dispose();
+    }
+    tendril.segments = [];
+
+    // Create new connection between player and enemy
+    if (tendril.target && tendril.target.isAlive) {
+      const startPos = this.player.mesh.position.clone();
+      startPos.y = 0.1;
+      const endPos = tendril.target.mesh.position.clone();
+      endPos.y = 0.1;
+
+      // Simple straight line for now, could be curved like DarkTendrils if desired
+      const direction = new THREE.Vector3().subVectors(endPos, startPos);
+      const distance = direction.length();
+      direction.normalize();
+
+      // Create segments along the line
+      const segmentCount = Math.max(1, Math.floor(distance * 1.5)); // Adjust for visual density
+      const segmentLength = distance / segmentCount;
+
+      for (let i = 0; i < segmentCount; i++) {
+        const midpoint = new THREE.Vector3().copy(startPos).add(direction.clone().multiplyScalar(segmentLength * (i + 0.5)));
+        const thickness = 0.05 + (i / segmentCount) * 0.05; // Taper slightly
+
+        const segGeometry = new THREE.CylinderGeometry(thickness, thickness, segmentLength, 6);
+        const segMaterial = new THREE.MeshStandardMaterial({
+          color: this.color,
+          emissive: this.color,
+          emissiveIntensity: 0.7 - (i / segmentCount) * 0.3, // Fade intensity
+          transparent: true,
+          opacity: 0.9 - (i / segmentCount) * 0.4 // Fade opacity
+        });
+
+        const segment = new THREE.Mesh(segGeometry, segMaterial);
+        segment.position.copy(midpoint);
+
+        // Orient segment
+        segment.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
+        segment.rotateX(Math.PI / 2); // Align cylinder axis with direction
+
+        this.scene.add(segment);
+        tendril.segments.push(segment);
+      }
+    }
+  }
+
+
+  drainEnemyHealth(tendril) {
+    if (!tendril.target || !tendril.target.isAlive) return;
+
+    // Apply damage
+    const damageAmount = this.damage;
+    tendril.target.takeDamage(damageAmount);
+
+     // Visual feedback on enemy
+     if (tendril.target.mesh && tendril.target.mesh.material) {
+      tendril.target.mesh.material.emissive.setHex(this.color);
+      tendril.target.mesh.material.emissiveIntensity = 0.8;
+      setTimeout(() => {
+          if (tendril.target.isAlive && tendril.target.mesh && tendril.target.mesh.material) {
+              tendril.target.mesh.material.emissiveIntensity = 0.3; // Default enemy emissive
+              tendril.target.mesh.material.emissive.setHex(0xaa0000); // Default enemy color
+          }
+      }, 150); // Shorter flash
+    }
+
+    // Heal player
+    if (this.healthReturn > 0 && window.gameInstance && window.gameInstance.health < 100) {
+      const healAmount = damageAmount * this.healthReturn;
+      window.gameInstance.health = Math.min(100, window.gameInstance.health + healAmount);
+      window.gameInstance.hud.updateHealth(window.gameInstance.health);
+
+      // Optional: Visual feedback for health gain (can reuse DarkTendrils effect if needed)
+      // this.createHealEffect();
+    }
+  }
+
+  removeTendril(index) {
+    if (index < 0 || index >= this.activeTendrils.length) return;
+
+    const tendril = this.activeTendrils[index];
+
+    // Remove segments
+    for (const segment of tendril.segments) {
+      this.scene.remove(segment);
+       if (segment.geometry) segment.geometry.dispose();
+       if (segment.material) segment.material.dispose();
+    }
+    tendril.segments = []; // Clear the array
+
+    // Remove from active list
+    this.activeTendrils.splice(index, 1);
+  }
+
+  // Override checkCollisions as damage is direct
+  checkCollisions(enemies) {
+    return []; // No projectile collisions
+  }
+
+  // Override dispose to clean up active tendrils
+  dispose() {
+    // Call removeTendril for all active tendrils to clean up segments
+    for (let i = this.activeTendrils.length - 1; i >= 0; i--) {
+        this.removeTendril(i);
+    }
+    this.activeTendrils = [];
+    this.active = false;
+    // No need to call super.dispose() as it deals with 'projectiles' array which we don't use here.
+  }
+}
