@@ -5,7 +5,7 @@ import { InputHandler } from './inputHandler.js';
 import { HUD } from './hud.js';
 import { EnemyManager } from './enemyManager.js';
 import { WeaponManager } from './weaponManager.js';
-import { WeaponSelectionMenu } from './weaponSelectionMenu.js';
+import { WeaponSelectionMenu } from './weaponSelection.js';
 
 export class Game {
   constructor(container) {
