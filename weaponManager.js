@@ -10,7 +10,14 @@ export class WeaponManager {
     this.scoreThreshold = 100; // Every 100 points, offer new weapons
     
     // Available weapon types - will be populated with your custom weapons
-    this.weaponTypes = [Weapons.IcicleShard, Weapons.FireStorm, Weapons.ThunderboltsWeapon, Weapons.LightBeamWeapon];
+    this.weaponTypes = [
+        Weapons.IcicleShard, 
+        Weapons.FireStorm, 
+        Weapons.ThunderboltsWeapon, 
+        Weapons.LightBeamWeapon,
+        Weapons.DarkTendrils,
+        Weapons.LeechingTendrils
+    ];
     
     // Available weapons to choose from (rotates based on score)
     this.availableWeapons = [];
