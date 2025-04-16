@@ -16,6 +16,8 @@ export class Game {
     this.gameStartTime = 0;
     this.score = 0;
     this.health = 100;
+    this.timeSinceLastWeaponOffer = 0; // Added: Timer for weapon offer
+    this.weaponOfferInterval = 60; // Added: Interval in seconds
     
     this.setupRenderer();
     this.setupCamera();
@@ -27,7 +29,7 @@ export class Game {
     this.inputHandler = new InputHandler();
     this.hud = new HUD(container);
     this.enemyManager = new EnemyManager(this.scene, this.player);
-    this.weaponManager = new WeaponManager(this.scene, this.player);
+    this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
     this.weaponSelectionMenu = new WeaponSelectionMenu(container);
     
     // Don't start with a weapon - we'll select one at game start
@@ -39,6 +41,9 @@ export class Game {
     this.setupResizeHandler();
     
     this.lastTime = 0;
+    
+    // Reset timer for weapon offer
+    this.timeSinceLastWeaponOffer = 0;
     
     // Render a single frame to show the game background behind the menu
     this.renderer.render(this.scene, this.camera);
@@ -99,6 +104,9 @@ export class Game {
     this.weaponManager.dispose();
     this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
     
+    // Reset timer for weapon offer
+    this.timeSinceLastWeaponOffer = 0;
+    
     // Show starter weapon selection
     this.showStarterWeaponSelection();
     
@@ -128,6 +136,19 @@ export class Game {
     
     // Update HUD
     this.hud.update(delta);
+    
+    // Update time since last weapon offer
+    this.timeSinceLastWeaponOffer += delta;
+    
+    // Check if it's time to offer a new weapon
+    if (this.timeSinceLastWeaponOffer >= this.weaponOfferInterval) {
+      console.log("Time-based weapon offer triggered.");
+      this.showWeaponSelection();
+      this.timeSinceLastWeaponOffer = 0; // Reset timer after showing
+      // Return early to avoid potential double-trigger with score milestone in the same frame
+      this.renderer.render(this.scene, this.camera); // Render before returning
+      return;
+    }
     
     // Update player position based on input
     const direction = this.inputHandler.getDirection();
@@ -162,6 +183,7 @@ export class Game {
           this.weaponManager.lastScoreCheck = currentScoreMilestone;
           console.log("Score milestone reached:", currentScoreMilestone * 100);
           this.showWeaponSelection();
+          this.timeSinceLastWeaponOffer = 0; // Reset time based offer as well
         }
       }
     }
@@ -200,6 +222,7 @@ export class Game {
         this.weaponManager.lastScoreCheck = currentScoreMilestone;
         console.log("Score milestone reached from kills:", currentScoreMilestone * 100);
         this.showWeaponSelection();
+        this.timeSinceLastWeaponOffer = 0; // Reset time based offer as well
       }
     }
     
@@ -214,26 +237,32 @@ export class Game {
   }
   
   showWeaponSelection() {
-    // Pause the game while selecting
     this.isPaused = true;
     
     // Get available weapons from the weapon manager
     const availableWeapons = this.weaponManager.getAvailableWeapons();
     
-    // Show the weapon selection menu
+    // Define pause/resume logic once
+    const pauseGame = () => { this.isPaused = true; };
+    const resumeGame = () => { this.isPaused = false; };
+
+    // Show the weapon selection menu with pause/resume callbacks
     this.weaponSelectionMenu.show(availableWeapons, (selectedWeapon) => {
       // Add the selected weapon to the player's arsenal
       this.weaponManager.addWeapon(selectedWeapon);
       
-      // Resume the game
-      this.isPaused = false;
-    });
+      // Resume is handled by the menu's hide method now
+    }, pauseGame, resumeGame); // Pass pause/resume functions
   }
   
   showStarterWeaponSelection() {
     // Get random starter weapons
     const starterWeapons = this.weaponManager.getRandomStarterWeapons(3);
     
+    // Define pause/resume logic once
+    const pauseGame = () => { this.isPaused = true; };
+    const resumeGame = () => { this.isPaused = false; };
+
     // Show weapon selection with title for starter weapon
     this.weaponSelectionMenu.showWithTitle(
       starterWeapons, 
@@ -243,9 +272,10 @@ export class Game {
         this.weaponManager.addWeapon(selectedWeapon);
         this.hasSelectedStarterWeapon = true;
         
-        // Resume the game
-        this.isPaused = false;
-      }
+        // Resume is handled by the menu's hide method now
+      },
+      pauseGame, // Pass pause function
+      resumeGame // Pass resume function
     );
   }
   
