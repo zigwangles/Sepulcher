@@ -81,6 +81,7 @@ export class MainMenu {
       { text: 'ABOUT', icon: 'ℹ️', callback: this.aboutCallback },
     ];
 
+    console.log('MainMenu: About to loop through menu items');
     menuItems.forEach(item => {
       console.log(`Attaching listeners for: ${item.text}`);
       const menuItemElement = document.createElement('button');
@@ -149,15 +150,23 @@ export class MainMenu {
     this.menuElement.appendChild(titleContainer);
     this.menuElement.appendChild(subtitle);
     this.menuElement.appendChild(menuItemsContainer);
+
+    // *** ADD LISTENER TO CONTAINER ***
+    this.menuElement.addEventListener('click', (event) => {
+      console.log('Click detected on #main-menu container. Target:', event.target);
+    });
     
     // Append menu to the main container
     this.container.appendChild(this.menuElement);
+
+    console.log('MainMenu: Finished createMenu()');
   }
   
   // Remove pulse animation, hover effects are now handled
   // Remove setupEventListeners as they are added directly in createMenu
   
   hide() {
+    console.log('MainMenu: hide() called');
     this.active = false;
     if (this.menuElement) {
       this.menuElement.classList.add('hidden'); // Use class to hide
@@ -166,13 +175,15 @@ export class MainMenu {
   }
   
   show() {
+    console.log('MainMenu: show() called');
     this.active = true;
-    if (!this.menuElement) { // If menu doesn't exist, create it
+    if (!this.menuElement) {
+      console.log('MainMenu: Creating menu inside show() because it didn\'t exist');
       this.createMenu();
     } 
     if (this.menuElement) { // Ensure element exists before showing
         this.menuElement.classList.remove('hidden'); // Use class to show
-        // Alternatively: this.menuElement.style.display = 'flex';
+        console.log('MainMenu: Removed .hidden class');
     }
   }
 }
