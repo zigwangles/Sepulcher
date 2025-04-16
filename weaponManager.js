@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { IcicleShard, FireStorm, ThunderboltsWeapon, LightBeamWeapon } from 'weapon';
+import * as Weapons from './weapon.js';
 
 export class WeaponManager {
   constructor(scene, player, addDefaultWeapon = true) {
@@ -10,14 +10,14 @@ export class WeaponManager {
     this.scoreThreshold = 100; // Every 100 points, offer new weapons
     
     // Available weapon types - will be populated with your custom weapons
-    this.weaponTypes = [IcicleShard, FireStorm, ThunderboltsWeapon, LightBeamWeapon];
+    this.weaponTypes = [Weapons.IcicleShard, Weapons.FireStorm, Weapons.ThunderboltsWeapon, Weapons.LightBeamWeapon];
     
     // Available weapons to choose from (rotates based on score)
     this.availableWeapons = [];
     
     // Start with a basic weapon if specified
     if (addDefaultWeapon) {
-      this.addWeapon(new IcicleShard(scene, player));
+      this.addWeapon(new Weapons.IcicleShard(scene, player));
     }
     
     // Generate initial available weapons
