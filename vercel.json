@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "public": true,
+  "name": "sepulcher-survivor",
+  "builds": [
+    { "src": "*.html", "use": "@vercel/static" },
+    { "src": "*.js", "use": "@vercel/static" },
+    { "src": "*.css", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+} 
