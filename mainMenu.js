@@ -82,6 +82,7 @@ export class MainMenu {
     ];
 
     menuItems.forEach(item => {
+      console.log(`Attaching listeners for: ${item.text}`);
       const menuItemElement = document.createElement('button');
       menuItemElement.className = 'menu-item'; // Use class for styling from style.css
       
@@ -98,8 +99,8 @@ export class MainMenu {
       textSpan.textContent = item.text;
 
       // Clear default button styles and apply menu-item styles via class
-      menuItemElement.style.border = 'none'; // Remove default button border if needed
-      menuItemElement.style.background = 'none'; // Use background from class
+      menuItemElement.style.border = 'none'; // Ensure default border is gone
+      menuItemElement.style.background = 'none'; // Ensure default background is gone
       menuItemElement.style.padding = '10px 20px';
       menuItemElement.style.fontSize = '1.3rem';
       menuItemElement.style.color = '#ccc'; // Use text color from style.css
@@ -109,18 +110,15 @@ export class MainMenu {
       menuItemElement.style.justifyContent = 'flex-start'; // Align icon and text left
       menuItemElement.style.marginBottom = '15px';
 
-      // Add hover effect (can also be done purely in CSS)
-       menuItemElement.addEventListener('mouseover', () => {
-          menuItemElement.style.backgroundColor = 'rgba(50, 50, 50, 0.9)'; 
-          menuItemElement.style.color = '#fff';
-      });
-      menuItemElement.addEventListener('mouseout', () => {
-          menuItemElement.style.backgroundColor = 'transparent'; // Back to no background or inherit
-          menuItemElement.style.color = '#ccc';
-      });
-
       menuItemElement.addEventListener('click', () => {
+          console.log(`Menu item clicked: ${item.text}`); // ADD LOGGING
+          if (typeof item.callback !== 'function') {
+              console.error('Callback is not a function for:', item.text);
+              return;
+          }
+          console.log('Executing callback for:', item.text);
           if (item.text === 'PLAY') {
+              console.log('Hiding menu before PLAY callback');
               this.hide(); // Hide menu only when starting game
           }
           item.callback(); // Execute the assigned callback
@@ -128,8 +126,15 @@ export class MainMenu {
       
       // Add touch support if needed
       menuItemElement.addEventListener('touchstart', (e) => {
+          console.log(`Menu item touched: ${item.text}`); // ADD LOGGING
           e.preventDefault(); // Prevent double-tap zoom
+           if (typeof item.callback !== 'function') {
+              console.error('Callback is not a function for touch:', item.text);
+              return;
+          }
+          console.log('Executing callback for touch:', item.text);
           if (item.text === 'PLAY') {
+             console.log('Hiding menu before PLAY touch callback');
              this.hide();
           }
           item.callback();
