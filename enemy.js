@@ -8,7 +8,7 @@ export class Enemy {
     this.health = 100;
     this.damage = 10; // Damage to player on collision
     this.isAlive = true;
-    this.value = 10; // Score value when killed
+    this.value = 5; // Reduced score value when killed
     this.isSlowed = false;
     this.originalSpeed = this.speed; // Store original speed for slowing effects
     
