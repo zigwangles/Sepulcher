@@ -93,6 +93,14 @@ export class Game {
     this.hud.score = 0;
     this.hud.health = 100;
     this.hud.show();
+    
+    // Initialize FPS display based on settings
+    if (this.settings.showFPS) {
+      this.hud.fpsDisplay.style.display = 'block';
+    } else {
+      this.hud.fpsDisplay.style.display = 'none';
+    }
+    
     this.enemyManager.clear(); // Clear any existing enemies
     
     // Reset player position
