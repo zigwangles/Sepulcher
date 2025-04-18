@@ -1,15 +1,7 @@
 export class InputHandler {
-  constructor() {
-    this.keys = {
-      ArrowUp: false,
-      ArrowDown: false,
-      ArrowLeft: false,
-      ArrowRight: false,
-      w: false,
-      s: false,
-      a: false,
-      d: false
-    };
+  constructor(settings) {
+    this.settings = settings;
+    this.activeKeys = new Set();
     
     window.addEventListener('keydown', this.onKeyDown.bind(this));
     window.addEventListener('keyup', this.onKeyUp.bind(this));
@@ -19,15 +11,11 @@ export class InputHandler {
   }
   
   onKeyDown(event) {
-    if (this.keys.hasOwnProperty(event.key)) {
-      this.keys[event.key] = true;
-    }
+    this.activeKeys.add(event.code);
   }
   
   onKeyUp(event) {
-    if (this.keys.hasOwnProperty(event.key)) {
-      this.keys[event.key] = false;
-    }
+    this.activeKeys.delete(event.code);
   }
   
   setupTouchControls() {
@@ -62,20 +50,25 @@ export class InputHandler {
   getDirection() {
     const direction = { x: 0, y: 0 };
     
-    // Keyboard input
-    if (this.keys.ArrowUp || this.keys.w) direction.y = -1;
-    if (this.keys.ArrowDown || this.keys.s) direction.y = 1;
-    if (this.keys.ArrowLeft || this.keys.a) direction.x = -1;
-    if (this.keys.ArrowRight || this.keys.d) direction.x = 1;
+    if (this.activeKeys.has(this.settings.keybinds.up) || this.activeKeys.has('ArrowUp')) direction.y = -1;
+    if (this.activeKeys.has(this.settings.keybinds.down) || this.activeKeys.has('ArrowDown')) direction.y = 1;
+    if (this.activeKeys.has(this.settings.keybinds.left) || this.activeKeys.has('ArrowLeft')) direction.x = -1;
+    if (this.activeKeys.has(this.settings.keybinds.right) || this.activeKeys.has('ArrowRight')) direction.x = 1;
     
-    // Touch input
     if (this.touchControls.active) {
       const dx = this.touchControls.currentX - this.touchControls.startX;
       const dy = this.touchControls.currentY - this.touchControls.startY;
       const threshold = 20;
       
-      if (Math.abs(dx) > threshold) direction.x = Math.sign(dx);
-      if (Math.abs(dy) > threshold) direction.y = Math.sign(dy);
+      let touchX = 0;
+      let touchY = 0;
+      if (Math.abs(dx) > threshold) touchX = Math.sign(dx);
+      if (Math.abs(dy) > threshold) touchY = Math.sign(dy);
+
+      if (direction.x === 0 && direction.y === 0) {
+          direction.x = touchX;
+          direction.y = touchY; 
+      }
     }
     
     return direction;
