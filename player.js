@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 
 export class Player {
-  constructor(scene) {
+  constructor(scene, settings) {
     this.scene = scene;
+    this.settings = settings;
     this.speed = 8; // Units per second
     this.createMesh();
   }
@@ -10,9 +11,10 @@ export class Player {
   createMesh() {
     // Create a flat circle for the player
     const geometry = new THREE.CircleGeometry(0.5, 32);
+    const playerColor = this.settings.getPlayerColorTHREE();
     const material = new THREE.MeshStandardMaterial({ 
-      color: 0x00ff88,
-      emissive: 0x00aa44,
+      color: playerColor,
+      emissive: playerColor.clone().multiplyScalar(0.5),
       emissiveIntensity: 0.5,
       side: THREE.DoubleSide
     });
@@ -24,6 +26,14 @@ export class Player {
     
     // Add a pulsing effect
     this.pulseTime = 0;
+  }
+  
+  applyColor(color) {
+    if (this.mesh && this.mesh.material) {
+      this.mesh.material.color.set(color);
+      this.mesh.material.emissive.set(color.clone().multiplyScalar(0.5));
+      this.mesh.material.needsUpdate = true;
+    }
   }
   
   move(direction, delta) {
