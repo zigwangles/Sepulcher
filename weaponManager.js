@@ -16,7 +16,8 @@ export class WeaponManager {
         Weapons.ThunderboltsWeapon, 
         Weapons.LightBeamWeapon,
         Weapons.DarkTendrils,
-        Weapons.LeechingTendrils
+        Weapons.LeechingTendrils,
+        Weapons.EarthWallWeapon
     ];
     
     // Available weapons to choose from (rotates based on score)
