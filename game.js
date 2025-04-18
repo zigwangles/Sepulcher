@@ -8,8 +8,9 @@ import { WeaponManager } from './weaponManager.js';
 import { WeaponSelectionMenu } from './weaponSelection.js';
 
 export class Game {
-  constructor(container) {
+  constructor(container, settings) {
     this.container = container;
+    this.settings = settings;
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.isRunning = false;
@@ -23,8 +24,8 @@ export class Game {
     this.setupLights();
     
     this.gridManager = new GridManager(this.scene);
-    this.player = new Player(this.scene);
-    this.inputHandler = new InputHandler();
+    this.player = new Player(this.scene, this.settings);
+    this.inputHandler = new InputHandler(this.settings);
     this.hud = new HUD(container);
     this.enemyManager = new EnemyManager(this.scene, this.player);
     this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
@@ -94,6 +95,9 @@ export class Game {
     this.hud.show();
     this.enemyManager.clear(); // Clear any existing enemies
     this.isPaused = true; // Start paused for weapon selection
+    
+    // Re-apply player color from settings in case it changed
+    this.player.applyColor(this.settings.getPlayerColorTHREE());
     
     // Reset weapons
     this.weaponManager.dispose();
