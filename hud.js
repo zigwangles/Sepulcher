@@ -4,6 +4,10 @@ export class HUD {
     this.gameTime = 0;
     this.score = 0;
     this.health = 100;
+    this.fps = 0;
+    this.fpsUpdateInterval = 0.5; // Update FPS every 0.5 seconds
+    this.fpsUpdateTimer = 0;
+    this.frameCount = 0;
     
     this.createHUD();
   }
@@ -105,6 +109,21 @@ export class HUD {
     this.hudElement.appendChild(centerPanel);
     this.hudElement.appendChild(rightPanel);
     
+    // Create FPS display
+    this.fpsDisplay = document.createElement('div');
+    this.fpsDisplay.style.position = 'absolute';
+    this.fpsDisplay.style.bottom = '10px';
+    this.fpsDisplay.style.right = '10px';
+    this.fpsDisplay.style.fontSize = '1rem';
+    this.fpsDisplay.style.color = '#aaa';
+    this.fpsDisplay.style.fontFamily = 'monospace';
+    this.fpsDisplay.style.textShadow = '0 0 5px #000';
+    this.fpsDisplay.style.pointerEvents = 'none';
+    this.fpsDisplay.textContent = 'FPS: 0';
+    
+    // Append FPS display to HUD
+    this.hudElement.appendChild(this.fpsDisplay);
+    
     // Append HUD to container
     this.container.appendChild(this.hudElement);
     
@@ -135,6 +154,17 @@ export class HUD {
     
     // Update score
     this.scoreDisplay.textContent = this.score.toString();
+    
+    // Update FPS counter
+    this.frameCount++;
+    this.fpsUpdateTimer += delta;
+    
+    if (this.fpsUpdateTimer >= this.fpsUpdateInterval) {
+      this.fps = Math.round(this.frameCount / this.fpsUpdateTimer);
+      this.fpsDisplay.textContent = `FPS: ${this.fps}`;
+      this.frameCount = 0;
+      this.fpsUpdateTimer = 0;
+    }
   }
   
   updateScore(newScore) {
@@ -178,6 +208,12 @@ export class HUD {
   
   show() {
     this.hudElement.style.display = 'flex';
+    // Only show FPS if enabled in settings
+    if (window.gameInstance && window.gameInstance.settings.showFPS) {
+      this.fpsDisplay.style.display = 'block';
+    } else {
+      this.fpsDisplay.style.display = 'none';
+    }
   }
   
   hide() {
