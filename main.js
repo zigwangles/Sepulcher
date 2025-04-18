@@ -96,8 +96,12 @@ window.gameOver = (score) => {
   });
   
   mainMenuButton.addEventListener('click', () => {
-    // Simply reload the page to go back to the initial main menu state
-    window.location.reload();
+    renderDiv.removeChild(gameOverScreen);
+    mainMenu.show();
+    if (game && typeof game.stop === 'function') {
+      game.stop(); 
+    }
+    window.gameInstance = null;
   });
   
   gameOverScreen.appendChild(gameOverTitle);
