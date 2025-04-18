@@ -1777,3 +1777,315 @@ export class LeechingTendrils extends Weapon {
     // No need to call super.dispose() as it deals with 'projectiles' array which we don't use here.
   }
 }
+
+// Earth Wall Weapon - Creates walls that damage enemies
+export class EarthWallWeapon extends Weapon {
+  constructor(scene, player) {
+    super(scene, player);
+    this.name = "Earth Wall";
+    this.description = "Creates walls of earth that damage enemies";
+    this.cooldownTime = 3.0; // 3 second cooldown
+    this.damage = 25; // Damage per wall
+    this.color = 0x885500; // Brown color for earth
+    this.category = WeaponCategory.EARTH;
+    this.wallCount = 3; // Number of walls to create
+    this.wallLifetime = 5.0; // How long walls stay active
+    this.wallWidth = 2.0; // Width of each wall
+    this.wallHeight = 2.0; // Height of each wall
+    this.wallThickness = 0.5; // Thickness of each wall
+    this.wallSpacing = 3.0; // Space between walls
+    this.walls = []; // Array to track active walls
+  }
+  
+  fire() {
+    // Find the nearest enemy to target
+    const nearestEnemy = this.findNearestEnemy();
+    
+    if (nearestEnemy) {
+      // Calculate direction to the enemy
+      const direction = new THREE.Vector3()
+        .subVectors(nearestEnemy.mesh.position, this.player.mesh.position)
+        .normalize();
+      
+      // Create walls in a line towards the enemy
+      this.createEarthWalls(direction);
+    } else {
+      // If no enemies, create walls in a random direction
+      const angle = Math.random() * Math.PI * 2;
+      const direction = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+      this.createEarthWalls(direction);
+    }
+  }
+  
+  createEarthWalls(direction) {
+    // Calculate perpendicular direction for wall orientation
+    const perpendicular = new THREE.Vector3(-direction.z, 0, direction.x).normalize();
+    
+    // Calculate starting position (slightly in front of player)
+    const startPos = this.player.mesh.position.clone().add(
+      direction.clone().multiplyScalar(3.0)
+    );
+    
+    // Create walls in a line
+    for (let i = 0; i < this.wallCount; i++) {
+      // Calculate position for this wall
+      const wallPos = startPos.clone().add(
+        direction.clone().multiplyScalar(i * this.wallSpacing)
+      );
+      
+      // Create the wall
+      this.createEarthWall(wallPos, perpendicular);
+    }
+  }
+  
+  createEarthWall(position, direction) {
+    // Create wall geometry
+    const geometry = new THREE.BoxGeometry(
+      this.wallWidth, 
+      this.wallHeight, 
+      this.wallThickness
+    );
+    
+    // Create wall material
+    const material = new THREE.MeshStandardMaterial({
+      color: this.color,
+      roughness: 0.9,
+      metalness: 0.1,
+      flatShading: true
+    });
+    
+    // Create wall mesh
+    const wall = new THREE.Mesh(geometry, material);
+    wall.position.copy(position);
+    wall.position.y = this.wallHeight / 2; // Center vertically
+    
+    // Orient wall to be perpendicular to direction
+    wall.lookAt(position.clone().add(direction));
+    
+    // Add properties for tracking
+    wall.lifetime = 0;
+    wall.maxLifetime = this.wallLifetime;
+    wall.damage = this.damage;
+    wall.damageRadius = this.wallWidth / 2;
+    wall.damageInterval = 0.5; // Damage every 0.5 seconds
+    wall.lastDamageTime = 0;
+    
+    // Add to scene and track
+    this.scene.add(wall);
+    this.walls.push(wall);
+    
+    // Add visual effects
+    this.addEarthParticles(wall);
+    
+    return wall;
+  }
+  
+  addEarthParticles(wall) {
+    // Create particles for earth effect
+    const particleCount = 20;
+    wall.particles = [];
+    
+    for (let i = 0; i < particleCount; i++) {
+      const particleGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+      const particleMaterial = new THREE.MeshStandardMaterial({
+        color: this.color,
+        roughness: 0.9,
+        metalness: 0.1
+      });
+      
+      const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+      
+      // Position randomly within the wall
+      particle.position.set(
+        (Math.random() - 0.5) * this.wallWidth,
+        (Math.random() - 0.5) * this.wallHeight,
+        (Math.random() - 0.5) * this.wallThickness
+      );
+      
+      // Add random movement variables
+      particle.speed = {
+        x: (Math.random() - 0.5) * 0.5,
+        y: (Math.random() - 0.5) * 0.5,
+        z: (Math.random() - 0.5) * 0.5
+      };
+      
+      // Add lifetime
+      particle.lifetime = 1.0 + Math.random() * 1.0;
+      particle.age = 0;
+      
+      wall.add(particle);
+      wall.particles.push(particle);
+    }
+  }
+  
+  update(delta) {
+    // Update cooldown
+    if (this.cooldown > 0) {
+      this.cooldown -= delta;
+    }
+    
+    // Update walls
+    for (let i = this.walls.length - 1; i >= 0; i--) {
+      const wall = this.walls[i];
+      
+      // Update lifetime
+      wall.lifetime += delta;
+      
+      // Remove walls that have expired
+      if (wall.lifetime >= wall.maxLifetime) {
+        this.removeWall(i);
+        continue;
+      }
+      
+      // Apply damage at intervals
+      wall.lastDamageTime += delta;
+      if (wall.lastDamageTime >= wall.damageInterval) {
+        this.applyWallDamage(wall);
+        wall.lastDamageTime = 0;
+      }
+      
+      // Update particles
+      if (wall.particles) {
+        for (let j = wall.particles.length - 1; j >= 0; j--) {
+          const particle = wall.particles[j];
+          
+          // Update position
+          particle.position.x += particle.speed.x * delta;
+          particle.position.y += particle.speed.y * delta;
+          particle.position.z += particle.speed.z * delta;
+          
+          // Update age and opacity
+          particle.age += delta;
+          particle.material.opacity = Math.max(0, 1 - (particle.age / particle.lifetime));
+          
+          // Remove old particles
+          if (particle.age >= particle.lifetime) {
+            wall.remove(particle);
+            particle.material.dispose();
+            particle.geometry.dispose();
+            wall.particles.splice(j, 1);
+            
+            // Create new particle to replace
+            if (wall.particles.length < 20 && this.walls.includes(wall)) {
+              this.addEarthParticle(wall);
+            }
+          }
+        }
+      }
+      
+      // Visual effect - slight pulsing
+      const pulseScale = 1 + 0.05 * Math.sin(wall.lifetime * 3);
+      wall.scale.set(pulseScale, pulseScale, pulseScale);
+    }
+    
+    // Automatically fire if cooldown is ready
+    if (this.cooldown <= 0 && this.active) {
+      this.fire();
+      this.cooldown = this.cooldownTime;
+    }
+  }
+  
+  addEarthParticle(wall) {
+    const particleGeometry = new THREE.BoxGeometry(0.2, 0.2, 0.2);
+    const particleMaterial = new THREE.MeshStandardMaterial({
+      color: this.color,
+      roughness: 0.9,
+      metalness: 0.1,
+      transparent: true,
+      opacity: 0.8
+    });
+    
+    const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+    
+    // Position randomly within the wall
+    particle.position.set(
+      (Math.random() - 0.5) * this.wallWidth,
+      (Math.random() - 0.5) * this.wallHeight,
+      (Math.random() - 0.5) * this.wallThickness
+    );
+    
+    // Add random movement variables
+    particle.speed = {
+      x: (Math.random() - 0.5) * 0.5,
+      y: (Math.random() - 0.5) * 0.5,
+      z: (Math.random() - 0.5) * 0.5
+    };
+    
+    // Add lifetime
+    particle.lifetime = 1.0 + Math.random() * 1.0;
+    particle.age = 0;
+    
+    wall.add(particle);
+    wall.particles.push(particle);
+  }
+  
+  applyWallDamage(wall) {
+    const enemies = window.gameEnemies || [];
+    
+    for (const enemy of enemies) {
+      if (!enemy.isAlive) continue;
+      
+      // Check if enemy is near the wall
+      const distance = new THREE.Vector3()
+        .subVectors(wall.position, enemy.mesh.position)
+        .length();
+        
+      if (distance < wall.damageRadius + 0.5) { // Add enemy radius
+        // Apply damage
+        enemy.takeDamage(wall.damage);
+        
+        // Add visual effect to enemy
+        if (enemy.mesh && enemy.mesh.material) {
+          enemy.mesh.material.emissive.setHex(this.color);
+          enemy.mesh.material.emissiveIntensity = 0.5;
+          
+          // Reset after a short time
+          setTimeout(() => {
+            if (enemy.isAlive && enemy.mesh && enemy.mesh.material) {
+              enemy.mesh.material.emissiveIntensity = 0.3;
+              enemy.mesh.material.emissive.setHex(0xaa0000);
+            }
+          }, 200);
+        }
+      }
+    }
+  }
+  
+  removeWall(index) {
+    if (index < 0 || index >= this.walls.length) return;
+    
+    const wall = this.walls[index];
+    
+    // Remove particles
+    if (wall.particles) {
+      for (const particle of wall.particles) {
+        wall.remove(particle);
+        particle.material.dispose();
+        particle.geometry.dispose();
+      }
+    }
+    
+    // Remove wall
+    this.scene.remove(wall);
+    wall.geometry.dispose();
+    wall.material.dispose();
+    
+    // Remove from array
+    this.walls.splice(index, 1);
+  }
+  
+  // We don't use the regular checkCollisions as damage is applied directly
+  checkCollisions(enemies) {
+    return []; // No projectile collisions
+  }
+  
+  dispose() {
+    // Remove all walls
+    for (let i = this.walls.length - 1; i >= 0; i--) {
+      this.removeWall(i);
+    }
+    
+    this.walls = [];
+    this.active = false;
+  }
+}
