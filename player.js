@@ -38,7 +38,7 @@ export class Player {
   
   move(direction, delta) {
     // Normalize direction vector for consistent speed in all directions
-    if (direction.length() > 0) {
+    if (direction.length > 0) {
       direction.normalize();
     }
     
@@ -60,7 +60,7 @@ export class Player {
       // Calculate distance to wall
       const distance = new THREE.Vector3()
         .subVectors(newPosition, wall.position)
-        .length();
+        .length;
       
       // Check if player would collide with wall
       if (distance < playerRadius + (wall.collisionRadius || 0.5)) {
@@ -75,7 +75,7 @@ export class Player {
       this.mesh.position.z = newZ;
       
       // Add visual effects during movement
-      if (direction.length() > 0) {
+      if (direction.length > 0) {
         // Add a subtle trail effect
         const trail = new THREE.Mesh(
           new THREE.CircleGeometry(0.4, 16),
