@@ -37,18 +37,14 @@ export class Player {
   }
   
   move(direction, delta) {
-    if (!direction.x && !direction.y) return;
-    
-    // Normalize the direction vector if we're moving diagonally
-    if (direction.x !== 0 && direction.y !== 0) {
-      const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
-      direction.x /= length;
-      direction.y /= length;
+    // Normalize direction vector for consistent speed in all directions
+    if (direction.length() > 0) {
+      direction.normalize();
     }
     
     // Calculate new position
     const newX = this.mesh.position.x + direction.x * this.speed * delta;
-    const newZ = this.mesh.position.z + direction.y * this.speed * delta;
+    const newZ = this.mesh.position.z + direction.z * this.speed * delta;
     
     // Check for collisions with Earth Walls
     const newPosition = new THREE.Vector3(newX, this.mesh.position.y, newZ);
@@ -59,7 +55,7 @@ export class Player {
     let collision = false;
     
     for (const wall of earthWalls) {
-      if (!wall.isObstacle) continue;
+      if (!wall || !wall.position || !wall.isObstacle) continue;
       
       // Calculate distance to wall
       const distance = new THREE.Vector3()
@@ -67,7 +63,7 @@ export class Player {
         .length();
       
       // Check if player would collide with wall
-      if (distance < playerRadius + wall.collisionRadius) {
+      if (distance < playerRadius + (wall.collisionRadius || 0.5)) {
         collision = true;
         break;
       }
@@ -78,10 +74,34 @@ export class Player {
       this.mesh.position.x = newX;
       this.mesh.position.z = newZ;
       
-      // Add visual effects when moving
-      this.pulseTime += delta * 5;
-      const scaleOffset = Math.sin(this.pulseTime) * 0.1;
-      this.mesh.scale.set(1 + scaleOffset, 1 + scaleOffset, 1);
+      // Add visual effects during movement
+      if (direction.length() > 0) {
+        // Add a subtle trail effect
+        const trail = new THREE.Mesh(
+          new THREE.CircleGeometry(0.4, 16),
+          new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            transparent: true,
+            opacity: 0.3
+          })
+        );
+        trail.position.copy(this.mesh.position);
+        trail.position.y = 0.01; // Slightly below the player
+        this.scene.add(trail);
+        
+        // Fade out and remove the trail
+        const fadeOut = () => {
+          if (trail.material.opacity > 0.01) {
+            trail.material.opacity -= 0.05;
+            requestAnimationFrame(fadeOut);
+          } else {
+            this.scene.remove(trail);
+            trail.geometry.dispose();
+            trail.material.dispose();
+          }
+        };
+        fadeOut();
+      }
     }
   }
 }
