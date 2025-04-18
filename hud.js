@@ -112,13 +112,17 @@ export class HUD {
     // Create FPS display
     this.fpsDisplay = document.createElement('div');
     this.fpsDisplay.style.position = 'absolute';
-    this.fpsDisplay.style.bottom = '10px';
-    this.fpsDisplay.style.right = '10px';
+    this.fpsDisplay.style.bottom = '20px';
+    this.fpsDisplay.style.right = '20px';
     this.fpsDisplay.style.fontSize = '1rem';
     this.fpsDisplay.style.color = '#aaa';
     this.fpsDisplay.style.fontFamily = 'monospace';
     this.fpsDisplay.style.textShadow = '0 0 5px #000';
     this.fpsDisplay.style.pointerEvents = 'none';
+    this.fpsDisplay.style.zIndex = '20'; // Ensure it's above other elements
+    this.fpsDisplay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+    this.fpsDisplay.style.padding = '5px 10px';
+    this.fpsDisplay.style.borderRadius = '5px';
     this.fpsDisplay.textContent = 'FPS: 0';
     
     // Append FPS display to HUD
