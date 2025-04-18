@@ -156,6 +156,78 @@ export class SettingsMenu {
     difficultySettingDiv.appendChild(this.difficultySelect);
     settingsContainer.appendChild(difficultySettingDiv);
 
+    // --- Keybind Settings ---
+    const keybindTitle = document.createElement('h3');
+    keybindTitle.textContent = 'Keybinds';
+    keybindTitle.style.color = '#fff';
+    keybindTitle.style.marginTop = '1rem';
+    keybindTitle.style.marginBottom = '1rem';
+    keybindTitle.style.width = '100%';
+    keybindTitle.style.textAlign = 'center';
+    settingsContainer.appendChild(keybindTitle);
+
+    // Create keybind container
+    const keybindContainer = document.createElement('div');
+    keybindContainer.style.display = 'flex';
+    keybindContainer.style.flexDirection = 'column';
+    keybindContainer.style.gap = '0.5rem';
+    keybindContainer.style.width = '100%';
+
+    // Create keybind rows
+    const keybindActions = [
+      { label: 'Move Up', key: 'up' },
+      { label: 'Move Down', key: 'down' },
+      { label: 'Move Left', key: 'left' },
+      { label: 'Move Right', key: 'right' }
+    ];
+
+    this.keybindInputs = {};
+
+    keybindActions.forEach(action => {
+      const keybindRow = document.createElement('div');
+      keybindRow.style.display = 'flex';
+      keybindRow.style.alignItems = 'center';
+      keybindRow.style.gap = '1rem';
+      keybindRow.style.width = '100%';
+
+      const keybindLabel = document.createElement('label');
+      keybindLabel.textContent = action.label;
+      keybindLabel.style.fontSize = '1.2rem';
+      keybindLabel.style.minWidth = '120px';
+
+      const keybindButton = document.createElement('button');
+      keybindButton.textContent = this.settings.keybinds[action.key];
+      keybindButton.style.padding = '0.5rem 1rem';
+      keybindButton.style.backgroundColor = '#333';
+      keybindButton.style.color = '#fff';
+      keybindButton.style.border = '1px solid #555';
+      keybindButton.style.borderRadius = '5px';
+      keybindButton.style.cursor = 'pointer';
+      keybindButton.style.flex = '1';
+      keybindButton.style.transition = 'background-color 0.2s';
+
+      // Store reference to the button
+      this.keybindInputs[action.key] = keybindButton;
+
+      // Add hover effect
+      keybindButton.addEventListener('mouseover', () => {
+        if (!keybindButton.classList.contains('listening')) {
+          keybindButton.style.backgroundColor = '#444';
+        }
+      });
+      keybindButton.addEventListener('mouseout', () => {
+        if (!keybindButton.classList.contains('listening')) {
+          keybindButton.style.backgroundColor = '#333';
+        }
+      });
+
+      keybindRow.appendChild(keybindLabel);
+      keybindRow.appendChild(keybindButton);
+      keybindContainer.appendChild(keybindRow);
+    });
+
+    settingsContainer.appendChild(keybindContainer);
+
     // --- Save Button ---
     this.saveButton = document.createElement('button');
     this.saveButton.textContent = 'SAVE SETTINGS';
@@ -236,6 +308,40 @@ export class SettingsMenu {
     this.difficultySelect.addEventListener('change', (event) => {
       this.settings.difficulty = event.target.value;
     });
+
+    // Keybind change listeners
+    for (const [action, button] of Object.entries(this.keybindInputs)) {
+      button.addEventListener('click', () => {
+        // Remove listening class from all buttons
+        Object.values(this.keybindInputs).forEach(btn => {
+          btn.classList.remove('listening');
+          btn.style.backgroundColor = '#333';
+        });
+
+        // Add listening class to clicked button
+        button.classList.add('listening');
+        button.style.backgroundColor = '#666';
+        button.textContent = 'Press any key...';
+
+        // Create one-time keydown listener
+        const keyListener = (e) => {
+          e.preventDefault();
+          
+          // Update the keybind
+          this.settings.keybinds[action] = e.code;
+          button.textContent = e.code;
+          
+          // Remove listening class
+          button.classList.remove('listening');
+          button.style.backgroundColor = '#333';
+          
+          // Remove the keydown listener
+          window.removeEventListener('keydown', keyListener);
+        };
+
+        window.addEventListener('keydown', keyListener);
+      });
+    }
 
     // Save button click
     this.saveButton.addEventListener('click', () => {
