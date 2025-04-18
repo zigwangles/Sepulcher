@@ -1795,6 +1795,11 @@ export class EarthWallWeapon extends Weapon {
     this.wallThickness = 0.5; // Thickness of each wall
     this.wallSpacing = 3.0; // Space between walls
     this.walls = []; // Array to track active walls
+    
+    // Initialize global Earth Walls array if it doesn't exist
+    if (!window.gameEarthWalls) {
+      window.gameEarthWalls = [];
+    }
   }
   
   fire() {
@@ -1873,10 +1878,12 @@ export class EarthWallWeapon extends Weapon {
     // Add collision properties
     wall.isObstacle = true;
     wall.collisionRadius = this.wallWidth / 2;
+    wall.position = position.clone(); // Ensure position is properly set
     
     // Add to scene and track
     this.scene.add(wall);
     this.walls.push(wall);
+    window.gameEarthWalls.push(wall); // Add to global array
     
     // Add visual effects
     this.addEarthParticles(wall);
@@ -2069,6 +2076,12 @@ export class EarthWallWeapon extends Weapon {
       }
     }
     
+    // Remove wall from global array
+    const globalIndex = window.gameEarthWalls.indexOf(wall);
+    if (globalIndex !== -1) {
+      window.gameEarthWalls.splice(globalIndex, 1);
+    }
+    
     // Remove wall
     this.scene.remove(wall);
     wall.geometry.dispose();
@@ -2090,6 +2103,7 @@ export class EarthWallWeapon extends Weapon {
     }
     
     this.walls = [];
+    window.gameEarthWalls = []; // Clear global array
     this.active = false;
   }
 }
