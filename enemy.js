@@ -35,20 +35,45 @@ export class Enemy {
     this.pulseTime = Math.random() * Math.PI; // Randomize starting phase
   }
   
-  update(delta) {
+  update(delta, playerPosition) {
     if (!this.isAlive) return;
     
-    // Move towards player
-    const direction = new THREE.Vector3();
-    direction.subVectors(this.player.mesh.position, this.mesh.position);
-    direction.y = 0; // Keep movement on the same plane
+    // Calculate direction to player
+    const direction = new THREE.Vector3()
+      .subVectors(playerPosition, this.mesh.position)
+      .normalize();
     
-    if (direction.length() > 0.01) {
-      direction.normalize();
+    // Calculate new position
+    const newX = this.mesh.position.x + direction.x * this.speed * delta;
+    const newZ = this.mesh.position.z + direction.z * this.speed * delta;
+    
+    // Check for collisions with Earth Walls
+    const newPosition = new THREE.Vector3(newX, this.mesh.position.y, newZ);
+    const enemyRadius = 0.5; // Enemy's collision radius
+    
+    // Get all Earth Walls from the weapon manager
+    const earthWalls = window.gameEarthWalls || [];
+    let collision = false;
+    
+    for (const wall of earthWalls) {
+      if (!wall.isObstacle) continue;
       
-      // Apply movement
-      this.mesh.position.x += direction.x * this.speed * delta;
-      this.mesh.position.z += direction.z * this.speed * delta;
+      // Calculate distance to wall
+      const distance = new THREE.Vector3()
+        .subVectors(newPosition, wall.position)
+        .length();
+      
+      // Check if enemy would collide with wall
+      if (distance < enemyRadius + wall.collisionRadius) {
+        collision = true;
+        break;
+      }
+    }
+    
+    // Only apply movement if no collision
+    if (!collision) {
+      this.mesh.position.x = newX;
+      this.mesh.position.z = newZ;
     }
     
     // Visual pulse effect
@@ -58,12 +83,18 @@ export class Enemy {
     
     // Check for collision with player
     const distanceToPlayer = new THREE.Vector3()
-      .subVectors(this.player.mesh.position, this.mesh.position)
+      .subVectors(playerPosition, this.mesh.position)
       .length();
       
     // If we're within the combined radius of both objects (player + enemy)
     if (distanceToPlayer < 0.9) {
       return true; // Signal a collision
+    }
+    
+    // Update health bar position
+    if (this.healthBar) {
+      this.healthBar.position.copy(this.mesh.position);
+      this.healthBar.position.y += 1.5;
     }
     
     return false;
