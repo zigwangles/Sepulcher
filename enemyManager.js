@@ -31,6 +31,9 @@ export class EnemyManager {
     let collisionDetected = false;
     const deadEnemies = [];
     
+    // Get player position for enemy updates
+    const playerPosition = this.player.mesh.position.clone();
+    
     for (let i = this.enemies.length - 1; i >= 0; i--) {
       const enemy = this.enemies[i];
       
@@ -42,7 +45,7 @@ export class EnemyManager {
       }
       
       // Update enemy and check for collision
-      const hasCollided = enemy.update(delta);
+      const hasCollided = enemy.update(delta, playerPosition);
       if (hasCollided) {
         collisionDetected = true;
       }
