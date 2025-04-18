@@ -56,7 +56,7 @@ export class Enemy {
     let collision = false;
     
     for (const wall of earthWalls) {
-      if (!wall.isObstacle) continue;
+      if (!wall || !wall.isObstacle) continue;
       
       // Calculate distance to wall
       const distance = new THREE.Vector3()
@@ -81,23 +81,18 @@ export class Enemy {
     const scaleOffset = Math.sin(this.pulseTime) * 0.1 + 0.9; // Pulse between 0.8 and 1.0 scale
     this.mesh.scale.set(scaleOffset, scaleOffset, 1);
     
-    // Check for collision with player
-    const distanceToPlayer = new THREE.Vector3()
-      .subVectors(playerPosition, this.mesh.position)
-      .length();
-      
-    // If we're within the combined radius of both objects (player + enemy)
-    if (distanceToPlayer < 0.9) {
-      return true; // Signal a collision
-    }
-    
     // Update health bar position
     if (this.healthBar) {
       this.healthBar.position.copy(this.mesh.position);
       this.healthBar.position.y += 1.5;
     }
     
-    return false;
+    // Check for collision with player
+    const distanceToPlayer = new THREE.Vector3()
+      .subVectors(playerPosition, this.mesh.position)
+      .length();
+      
+    return distanceToPlayer < 0.9; // Return true if collision with player
   }
   
   takeDamage(amount) {
