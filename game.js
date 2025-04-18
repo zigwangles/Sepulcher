@@ -194,8 +194,12 @@ export class Game {
     
     // Handle enemy collisions with player
     if (enemyStatus.collision) {
-      this.health -= 10; // Take damage when enemy collides
+      // Take damage when enemy collides
+      this.health -= 10;
       this.hud.updateHealth(this.health);
+      
+      // Push back enemies when they collide with player
+      this.pushbackEnemies();
       
       // Game over condition
       if (this.health <= 0) {
