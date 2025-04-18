@@ -6,6 +6,8 @@ export class GridManager {
     this.gridSize = 10; // Size of each grid section
     this.visibleRange = 3; // How many grid sections to show in each direction
     
+    console.log("Initializing GridManager...");
+    
     this.gridSections = new Map(); // Map to store grid sections
     
     // Material for grid sections
@@ -16,6 +18,21 @@ export class GridManager {
     
     // Grid lines material
     this.lineMaterial = new THREE.LineBasicMaterial({ color: 0x666688, transparent: true, opacity: 0.5 });
+    
+    // Create initial grid sections
+    this.createInitialGrid();
+    console.log("GridManager initialization complete");
+  }
+  
+  createInitialGrid() {
+    console.log("Creating initial grid sections...");
+    // Create grid sections around the origin
+    for (let x = -this.visibleRange; x <= this.visibleRange; x++) {
+      for (let z = -this.visibleRange; z <= this.visibleRange; z++) {
+        this.createGridSection(x, z);
+      }
+    }
+    console.log("Initial grid sections created");
   }
   
   getGridKey(x, z) {
