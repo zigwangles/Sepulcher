@@ -94,6 +94,12 @@ export class Game {
     this.hud.health = 100;
     this.hud.show();
     this.enemyManager.clear(); // Clear any existing enemies
+    
+    // Reset player position
+    this.player.mesh.position.set(0, this.player.mesh.position.y, 0); 
+    this.player.mesh.scale.set(1, 1, 1); // Reset any pulse scaling
+    this.player.pulseTime = 0; // Reset pulse timer
+    
     this.isPaused = true; // Start paused for weapon selection
     
     // Re-apply player color from settings in case it changed
