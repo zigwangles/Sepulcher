@@ -302,6 +302,15 @@ export class SettingsMenu {
     // FPS toggle change
     this.fpsToggle.addEventListener('change', (event) => {
       this.settings.showFPS = event.target.checked;
+      
+      // Immediately update FPS display visibility if game is running
+      if (window.gameInstance && window.gameInstance.isRunning && window.gameInstance.hud) {
+        if (this.settings.showFPS) {
+          window.gameInstance.hud.fpsDisplay.style.display = 'block';
+        } else {
+          window.gameInstance.hud.fpsDisplay.style.display = 'none';
+        }
+      }
     });
 
     // Difficulty select change
