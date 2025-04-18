@@ -73,4 +73,9 @@ export class InputHandler {
     
     return direction;
   }
+  
+  clearKeys() {
+    this.activeKeys.clear();
+    this.touchControls.active = false;
+  }
 }
