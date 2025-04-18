@@ -91,7 +91,12 @@ export class Enemy {
       .subVectors(playerPosition, this.mesh.position)
       .length();
       
-    return distanceToPlayer < 0.9; // Return true if collision with player
+    // If we're within the combined radius of both objects (player + enemy)
+    if (distanceToPlayer < 0.9) {
+      return true; // Signal a collision
+    }
+    
+    return false;
   }
   
   takeDamage(amount) {
