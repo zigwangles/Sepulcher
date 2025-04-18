@@ -147,6 +147,13 @@ export class Game {
     // Update HUD
     this.hud.update(delta);
     
+    // Ensure FPS display visibility matches settings
+    if (this.settings.showFPS) {
+      this.hud.fpsDisplay.style.display = 'block';
+    } else {
+      this.hud.fpsDisplay.style.display = 'none';
+    }
+    
     // Update player position based on input
     const direction = this.inputHandler.getDirection();
     this.player.move(direction, delta);
