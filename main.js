@@ -31,6 +31,9 @@ const mainMenu = new MainMenu(renderDiv,
   }
 );
 
+// Show the main menu immediately
+mainMenu.show();
+
 // Handle game over events
 window.gameOver = (score) => {
   // Hide any weapon selection or settings menu that might be open
