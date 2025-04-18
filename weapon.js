@@ -1791,7 +1791,7 @@ export class EarthWallWeapon extends Weapon {
     this.wallCount = 3; // Number of walls to create
     this.wallLifetime = 5.0; // How long walls stay active
     this.wallWidth = 2.0; // Width of each wall
-    this.wallHeight = 2.0; // Height of each wall
+    this.wallHeight = 0.1; // Height of each wall (thin for 2D)
     this.wallThickness = 0.5; // Thickness of each wall
     this.wallSpacing = 3.0; // Space between walls
     this.walls = []; // Array to track active walls
@@ -1839,7 +1839,7 @@ export class EarthWallWeapon extends Weapon {
   }
   
   createEarthWall(position, direction) {
-    // Create wall geometry
+    // Create wall geometry - make it thin for 2D
     const geometry = new THREE.BoxGeometry(
       this.wallWidth, 
       this.wallHeight, 
@@ -1857,7 +1857,7 @@ export class EarthWallWeapon extends Weapon {
     // Create wall mesh
     const wall = new THREE.Mesh(geometry, material);
     wall.position.copy(position);
-    wall.position.y = this.wallHeight / 2; // Center vertically
+    wall.position.y = 0.05; // Just above the ground for 2D
     
     // Orient wall to be perpendicular to direction
     wall.lookAt(position.clone().add(direction));
@@ -1869,6 +1869,10 @@ export class EarthWallWeapon extends Weapon {
     wall.damageRadius = this.wallWidth / 2;
     wall.damageInterval = 0.5; // Damage every 0.5 seconds
     wall.lastDamageTime = 0;
+    
+    // Add collision properties
+    wall.isObstacle = true;
+    wall.collisionRadius = this.wallWidth / 2;
     
     // Add to scene and track
     this.scene.add(wall);
