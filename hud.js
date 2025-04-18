@@ -164,6 +164,13 @@ export class HUD {
       this.fpsDisplay.textContent = `FPS: ${this.fps}`;
       this.frameCount = 0;
       this.fpsUpdateTimer = 0;
+      
+      // Ensure FPS display visibility matches settings
+      if (window.gameInstance && window.gameInstance.settings.showFPS) {
+        this.fpsDisplay.style.display = 'block';
+      } else {
+        this.fpsDisplay.style.display = 'none';
+      }
     }
   }
   
