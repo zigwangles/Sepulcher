@@ -1,25 +1,44 @@
 import * as THREE from 'three';
 import { Game } from './game.js';
 import { MainMenu } from './mainMenu.js';
+import { SettingsMenu } from './settingsMenu.js';
+import { Settings } from './settings.js';
+
 // Store a global reference to running game
 window.gameInstance = null;
 // Get the render target
 const renderDiv = document.getElementById('renderDiv');
-// Initialize the game with the render target but don't start it yet
-const game = new Game(renderDiv);
-// Create the main menu
-const mainMenu = new MainMenu(renderDiv, () => {
-  // Start the game when the start button is clicked
-  game.start();
-  
-  // Store reference to current game
-  window.gameInstance = game;
+
+// Load settings first
+const settings = new Settings();
+
+// Initialize the game with the render target and settings, but don't start it yet
+const game = new Game(renderDiv, settings);
+
+// Create the settings menu, passing a callback to show the main menu
+const settingsMenu = new SettingsMenu(renderDiv, () => {
+  mainMenu.show();
 });
+
+// Create the main menu, passing callbacks for starting game and showing settings
+const mainMenu = new MainMenu(renderDiv, 
+  () => {
+    game.start();
+    window.gameInstance = game;
+  },
+  () => {
+    settingsMenu.show();
+  }
+);
+
 // Handle game over events
 window.gameOver = (score) => {
-  // Hide any weapon selection that might be open
+  // Hide any weapon selection or settings menu that might be open
   if (game.weaponSelectionMenu.isActive()) {
     game.weaponSelectionMenu.hide();
+  }
+  if (settingsMenu.isActive()) {
+    settingsMenu.hide();
   }
   
   // Show game over screen
@@ -49,10 +68,6 @@ window.gameOver = (score) => {
   scoreDisplay.style.fontSize = '2rem';
   scoreDisplay.style.margin = '0 0 40px 0';
   
-  const buttonContainer = document.createElement('div'); // Create a container for buttons
-  buttonContainer.style.display = 'flex';
-  buttonContainer.style.gap = '20px'; // Add some space between buttons
-
   const restartButton = document.createElement('button');
   restartButton.textContent = 'PLAY AGAIN';
   restartButton.style.padding = '15px 30px';
@@ -62,32 +77,37 @@ window.gameOver = (score) => {
   restartButton.style.border = 'none';
   restartButton.style.borderRadius = '5px';
   restartButton.style.cursor = 'pointer';
-
-  restartButton.addEventListener('click', () => {
-    renderDiv.removeChild(gameOverScreen);
-    game.start();
-  });
-
-  const mainMenuButton = document.createElement('button'); // Create Main Menu button
+  restartButton.style.margin = '10px';
+  
+  const mainMenuButton = document.createElement('button');
   mainMenuButton.textContent = 'MAIN MENU';
   mainMenuButton.style.padding = '15px 30px';
   mainMenuButton.style.fontSize = '1.5rem';
-  mainMenuButton.style.backgroundColor = '#0055aa'; // Different color
+  mainMenuButton.style.backgroundColor = '#555555';
   mainMenuButton.style.color = '#fff';
   mainMenuButton.style.border = 'none';
   mainMenuButton.style.borderRadius = '5px';
   mainMenuButton.style.cursor = 'pointer';
-
-  mainMenuButton.addEventListener('click', () => {
-    location.reload(); // Reload the page to go back to the main menu
+  mainMenuButton.style.margin = '10px';
+  
+  restartButton.addEventListener('click', () => {
+    renderDiv.removeChild(gameOverScreen);
+    game.start();
   });
-
+  
+  mainMenuButton.addEventListener('click', () => {
+    renderDiv.removeChild(gameOverScreen);
+    mainMenu.show();
+    if (game && typeof game.stop === 'function') {
+      game.stop(); 
+    }
+    window.gameInstance = null;
+  });
+  
   gameOverScreen.appendChild(gameOverTitle);
   gameOverScreen.appendChild(scoreDisplay);
-  buttonContainer.appendChild(restartButton); // Add restart button to container
-  buttonContainer.appendChild(mainMenuButton); // Add main menu button to container
-  gameOverScreen.appendChild(buttonContainer); // Add container to screen
-
+  gameOverScreen.appendChild(restartButton);
+  gameOverScreen.appendChild(mainMenuButton);
+  
   renderDiv.appendChild(gameOverScreen);
 };
-
