@@ -109,7 +109,10 @@ export class HUD {
     this.hudElement.appendChild(centerPanel);
     this.hudElement.appendChild(rightPanel);
     
-    // Create FPS display
+    // Append HUD to container
+    this.container.appendChild(this.hudElement);
+    
+    // Create FPS display as a separate element
     this.fpsDisplay = document.createElement('div');
     this.fpsDisplay.style.position = 'absolute';
     this.fpsDisplay.style.bottom = '20px';
@@ -125,11 +128,8 @@ export class HUD {
     this.fpsDisplay.style.borderRadius = '5px';
     this.fpsDisplay.textContent = 'FPS: 0';
     
-    // Append FPS display to HUD
-    this.hudElement.appendChild(this.fpsDisplay);
-    
-    // Append HUD to container
-    this.container.appendChild(this.hudElement);
+    // Append FPS display directly to container
+    this.container.appendChild(this.fpsDisplay);
     
     // Initially hide the HUD
     this.hide();
@@ -229,6 +229,7 @@ export class HUD {
   
   hide() {
     this.hudElement.style.display = 'none';
+    this.fpsDisplay.style.display = 'none';
   }
   
   // Make HUD responsive
