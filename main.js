@@ -68,17 +68,6 @@ window.gameOver = (score) => {
   scoreDisplay.style.fontSize = '2rem';
   scoreDisplay.style.margin = '0 0 40px 0';
   
-  const restartButton = document.createElement('button');
-  restartButton.textContent = 'PLAY AGAIN';
-  restartButton.style.padding = '15px 30px';
-  restartButton.style.fontSize = '1.5rem';
-  restartButton.style.backgroundColor = '#aa0000';
-  restartButton.style.color = '#fff';
-  restartButton.style.border = 'none';
-  restartButton.style.borderRadius = '5px';
-  restartButton.style.cursor = 'pointer';
-  restartButton.style.margin = '10px';
-  
   const mainMenuButton = document.createElement('button');
   mainMenuButton.textContent = 'MAIN MENU';
   mainMenuButton.style.padding = '15px 30px';
@@ -90,23 +79,13 @@ window.gameOver = (score) => {
   mainMenuButton.style.cursor = 'pointer';
   mainMenuButton.style.margin = '10px';
   
-  restartButton.addEventListener('click', () => {
-    renderDiv.removeChild(gameOverScreen);
-    game.start();
-  });
-  
   mainMenuButton.addEventListener('click', () => {
-    renderDiv.removeChild(gameOverScreen);
-    mainMenu.show();
-    if (game && typeof game.stop === 'function') {
-      game.stop(); 
-    }
-    window.gameInstance = null;
+    // Reload page on Main Menu click
+    window.location.reload();
   });
   
   gameOverScreen.appendChild(gameOverTitle);
   gameOverScreen.appendChild(scoreDisplay);
-  gameOverScreen.appendChild(restartButton);
   gameOverScreen.appendChild(mainMenuButton);
   
   renderDiv.appendChild(gameOverScreen);
