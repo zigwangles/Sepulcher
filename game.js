@@ -18,13 +18,20 @@ export class Game {
     this.score = 0;
     this.health = 100;
     
+    console.log("Setting up game...");
     this.setupRenderer();
+    console.log("Renderer setup complete");
     this.setupCamera();
+    console.log("Camera setup complete");
     this.setupScene();
+    console.log("Scene setup complete");
     this.setupLights();
+    console.log("Lights setup complete");
     
     this.gridManager = new GridManager(this.scene);
+    console.log("Grid manager created");
     this.player = new Player(this.scene, this.settings);
+    console.log("Player created");
     this.inputHandler = new InputHandler(this.settings);
     this.hud = new HUD(container);
     this.enemyManager = new EnemyManager(this.scene, this.player);
@@ -43,6 +50,7 @@ export class Game {
     
     // Render a single frame to show the game background behind the menu
     this.renderer.render(this.scene, this.camera);
+    console.log("Initial render complete");
   }
   
   setupRenderer() {
@@ -64,12 +72,23 @@ export class Game {
   }
   
   setupLights() {
+    // Ambient light for overall scene illumination
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     this.scene.add(ambientLight);
+    console.log("Added ambient light");
     
+    // Main directional light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight.position.set(10, 20, 10);
+    directionalLight.castShadow = true;
     this.scene.add(directionalLight);
+    console.log("Added directional light");
+    
+    // Add a second directional light from the opposite direction for better illumination
+    const secondaryLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    secondaryLight.position.set(-10, 15, -10);
+    this.scene.add(secondaryLight);
+    console.log("Added secondary directional light");
   }
   
   setupResizeHandler() {
