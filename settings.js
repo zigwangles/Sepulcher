@@ -20,10 +20,10 @@ export class Settings {
             // interact: 'KeyE',
             // shoot: 'Space' 
         };
-        // Add other default settings here
-        // Example:
-        // this.masterVolume = 0.8;
-        // this.showFPS = false;
+        // New settings
+        this.masterVolume = 0.8;
+        this.showFPS = false;
+        this.difficulty = 'normal'; // 'easy', 'normal', 'hard'
     }
 
     load() {
@@ -43,14 +43,16 @@ export class Settings {
                          }
                      }
                 }
-                // Load other settings...
-                // Example:
-                // if (parsed.masterVolume !== undefined) {
-                //     this.masterVolume = parsed.masterVolume;
-                // }
-                // if (parsed.showFPS !== undefined) {
-                //     this.showFPS = parsed.showFPS;
-                // }
+                // Load new settings
+                if (parsed.masterVolume !== undefined) {
+                    this.masterVolume = parsed.masterVolume;
+                }
+                if (parsed.showFPS !== undefined) {
+                    this.showFPS = parsed.showFPS;
+                }
+                if (parsed.difficulty !== undefined) {
+                    this.difficulty = parsed.difficulty;
+                }
             }
         } catch (e) {
             console.error("Failed to load settings:", e);
@@ -63,10 +65,9 @@ export class Settings {
             const settingsToSave = {
                 playerColor: this.playerColor,
                 keybinds: this.keybinds,
-                // Add other settings...
-                // Example:
-                // masterVolume: this.masterVolume,
-                // showFPS: this.showFPS,
+                masterVolume: this.masterVolume,
+                showFPS: this.showFPS,
+                difficulty: this.difficulty
             };
             localStorage.setItem('gameSettings', JSON.stringify(settingsToSave));
         } catch (e) {
