@@ -120,7 +120,11 @@ export class SettingsMenu {
       const newColorInt = parseInt(newColorHex, 16);
       this.settings.playerColor = newColorInt;
       this.settings.save(); // Save setting immediately
-      // Optionally, update player preview or something visual here
+      
+      // Apply color change immediately if game is running
+      if (window.gameInstance && window.gameInstance.isRunning) {
+        window.gameInstance.player.applyColor(this.settings.getPlayerColorTHREE());
+      }
     });
 
     // Back button listener
