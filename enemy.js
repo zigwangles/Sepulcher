@@ -36,12 +36,11 @@ export class Enemy {
   }
   
   update(delta, playerPosition) {
-    if (!this.isAlive) return;
+    if (!this.isAlive || !this.mesh || !playerPosition) return false;
     
     // Calculate direction to player
-    const direction = new THREE.Vector3()
-      .subVectors(playerPosition, this.mesh.position)
-      .normalize();
+    const direction = new THREE.Vector3();
+    direction.subVectors(playerPosition, this.mesh.position).normalize();
     
     // Calculate new position
     const newX = this.mesh.position.x + direction.x * this.speed * delta;
@@ -56,7 +55,7 @@ export class Enemy {
     let collision = false;
     
     for (const wall of earthWalls) {
-      if (!wall || !wall.isObstacle) continue;
+      if (!wall || !wall.position || !wall.isObstacle) continue;
       
       // Calculate distance to wall
       const distance = new THREE.Vector3()
@@ -64,7 +63,7 @@ export class Enemy {
         .length();
       
       // Check if enemy would collide with wall
-      if (distance < enemyRadius + wall.collisionRadius) {
+      if (distance < enemyRadius + (wall.collisionRadius || 0.5)) {
         collision = true;
         break;
       }
