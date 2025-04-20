@@ -1,105 +1,128 @@
 import * as THREE from 'three';
-import { Weapon } from './weapon';
+import { Weapon, WeaponCategory } from '../baseWeapon';
 
 export class FireStorm extends Weapon {
-  constructor(scene) {
-    super(scene);
-    this.particles = [];
-    this.projectiles = [];
-    this.burnAreas = [];
-  }
+    constructor(scene, player) {
+        super(scene, player);
+        this.name = 'Fire Storm';
+        this.description = 'Creates a storm of fire that damages enemies over time';
+        this.cooldownTime = 2;
+        this.damage = 5;
+        this.color = '#ff4400';
+        this.category = WeaponCategory.FIRE;
+        this.duration = 5;
+        this.radius = 5;
+        this.particleCount = 50;
+        this.particles = [];
+        this.isActive = false;
+        this.startTime = 0;
+    }
 
-  initialize() {
-    // Initialize particle system
-    this.particleSystem = new THREE.Points(
-      new THREE.BufferGeometry(),
-      new THREE.PointsMaterial({
-        color: 0xff4400,
-        size: 0.5,
-        transparent: true,
-        blending: THREE.AdditiveBlending
-      })
-    );
-    this.scene.add(this.particleSystem);
-  }
+    fire() {
+        if (this.cooldown <= 0 && !this.isActive) {
+            this.isActive = true;
+            this.startTime = Date.now();
+            this.createFireStorm();
+            this.cooldown = this.cooldownTime;
+            this.lastFired = Date.now();
+        }
+    }
 
-  dispose() {
-    // Clean up particle system
-    if (this.particleSystem) {
-      this.scene.remove(this.particleSystem);
-      this.particleSystem.geometry.dispose();
-      this.particleSystem.material.dispose();
+    createFireStorm() {
+        // Create particle system
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(this.particleCount * 3);
+        const colors = new Float32Array(this.particleCount * 3);
+        
+        for (let i = 0; i < this.particleCount; i++) {
+            const i3 = i * 3;
+            // Random position within radius
+            const angle = Math.random() * Math.PI * 2;
+            const radius = Math.random() * this.radius;
+            positions[i3] = Math.cos(angle) * radius;
+            positions[i3 + 1] = 0;
+            positions[i3 + 2] = Math.sin(angle) * radius;
+            
+            // Color gradient from orange to red
+            const color = new THREE.Color();
+            color.setHSL(0.05 + Math.random() * 0.05, 1, 0.5);
+            colors[i3] = color.r;
+            colors[i3 + 1] = color.g;
+            colors[i3 + 2] = color.b;
+        }
+        
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        
+        const material = new THREE.PointsMaterial({
+            size: 0.2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending
+        });
+        
+        const particles = new THREE.Points(geometry, material);
+        particles.position.copy(this.player.mesh.position);
+        this.scene.add(particles);
+        
+        // Store particle system
+        this.particles.push({
+            mesh: particles,
+            startTime: Date.now(),
+            update: (delta) => {
+                // Rotate particles
+                particles.rotation.y += delta * 2;
+                
+                // Update particle positions
+                const positions = particles.geometry.attributes.position.array;
+                for (let i = 0; i < positions.length; i += 3) {
+                    positions[i + 1] += Math.random() * delta * 2; // Rise up
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+                
+                // Check for enemy collisions
+                this.checkEnemyCollisions(particles.position);
+            },
+            shouldRemove: () => {
+                return Date.now() - this.startTime > this.duration * 1000;
+            },
+            dispose: () => {
+                this.scene.remove(particles);
+                geometry.dispose();
+                material.dispose();
+            }
+        });
     }
-    
-    // Clear arrays
-    this.particles = [];
-    this.projectiles = [];
-    this.burnAreas = [];
-  }
 
-  update(delta) {
-    super.update(delta);
-    
-    // Validate arrays
-    if (!Array.isArray(this.particles)) this.particles = [];
-    if (!Array.isArray(this.projectiles)) this.projectiles = [];
-    if (!Array.isArray(this.burnAreas)) this.burnAreas = [];
-    
-    // Update burn areas
-    for (let i = this.burnAreas.length - 1; i >= 0; i--) {
-      const area = this.burnAreas[i];
-      if (!area) {
-        this.burnAreas.splice(i, 1);
-        continue;
-      }
-      
-      area.duration -= delta;
-      if (area.duration <= 0) {
-        this.burnAreas.splice(i, 1);
-      }
+    checkEnemyCollisions(center) {
+        for (const enemy of window.gameEnemies) {
+            const distance = center.distanceTo(enemy.mesh.position);
+            if (distance < this.radius + enemy.radius) {
+                enemy.takeDamage(this.damage * 0.1); // Damage per frame
+            }
+        }
     }
-    
-    // Update projectiles
-    for (let i = this.projectiles.length - 1; i >= 0; i--) {
-      const projectile = this.projectiles[i];
-      if (!projectile || !projectile.mesh) {
-        this.projectiles.splice(i, 1);
-        continue;
-      }
-      
-      projectile.life -= delta;
-      if (projectile.life <= 0) {
-        this.scene.remove(projectile.mesh);
-        projectile.mesh.geometry.dispose();
-        projectile.mesh.material.dispose();
-        this.projectiles.splice(i, 1);
-      }
+
+    update(delta) {
+        super.update(delta);
+        
+        // Update fire storm particles
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const particle = this.particles[i];
+            particle.update(delta);
+            
+            if (particle.shouldRemove()) {
+                particle.dispose();
+                this.particles.splice(i, 1);
+                this.isActive = false;
+            }
+        }
     }
-    
-    // Update particles
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const particle = this.particles[i];
-      if (!particle) {
-        this.particles.splice(i, 1);
-        continue;
-      }
-      
-      particle.life -= delta;
-      if (particle.life <= 0) {
-        this.particles.splice(i, 1);
-      }
+
+    dispose() {
+        super.dispose();
+        this.particles.forEach(particle => particle.dispose());
+        this.particles = [];
     }
-    
-    // Update particle system geometry
-    if (this.particles.length > 0) {
-      const positions = new Float32Array(this.particles.length * 3);
-      for (let i = 0; i < this.particles.length; i++) {
-        const particle = this.particles[i];
-        positions[i * 3] = particle.position.x;
-        positions[i * 3 + 1] = particle.position.y;
-        positions[i * 3 + 2] = particle.position.z;
-      }
-      this.particleSystem.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    }
-  }
 } 
