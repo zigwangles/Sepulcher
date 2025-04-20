@@ -60,6 +60,10 @@ export class WeaponManager {
   
   // Add a new weapon to the player's arsenal
   addWeapon(weapon) {
+    // Ensure weapon is properly initialized
+    if (weapon && typeof weapon.initialize === 'function') {
+      weapon.initialize();
+    }
     this.weapons.push(weapon);
   }
   
