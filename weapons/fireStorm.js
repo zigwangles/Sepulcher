@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Weapon, WeaponCategory } from '../baseWeapon';
+import { Weapon, WeaponCategory } from '../baseWeapon.js';
 
 export class FireStorm extends Weapon {
     constructor(scene, player) {
