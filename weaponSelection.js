@@ -242,20 +242,33 @@ export class WeaponSelectionMenu {
   }
   
   selectWeapon(index) {
+    console.log("Weapon selected, index:", index);
     if (this.onSelectCallback && index >= 0 && index < this.weaponOptions.length) {
       const selectedWeapon = this.weaponOptions[index]; // Store selection first
-      this.hide(); // Hide menu & resume game BEFORE processing selection
-      this.onSelectCallback(selectedWeapon); // Process selection AFTER hide/resume
+      console.log("Selected weapon:", selectedWeapon.name);
+      
+      // Hide menu & resume game BEFORE processing selection
+      this.hide(); 
+      
+      // Process selection AFTER hide/resume
+      console.log("Calling weapon selection callback");
+      this.onSelectCallback(selectedWeapon);
+    } else {
+      console.log("Invalid weapon selection or no callback");
     }
   }
   
   hide() {
+    console.log("Hiding weapon selection menu");
     this.active = false;
     this.menuElement.style.display = 'none'; // Hide visually first
 
     // Resume the game AFTER hiding visually
     if (this.onResumeCallback) {
+        console.log("Calling resume callback");
         this.onResumeCallback();
+    } else {
+        console.log("No resume callback found");
     }
   }
   
