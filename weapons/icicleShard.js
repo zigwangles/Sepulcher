@@ -1,151 +1,83 @@
 import * as THREE from 'three';
-import { Weapon, WeaponCategory } from '../weapon';
+import { Weapon, WeaponCategory } from '../baseWeapon';
 
 export class IcicleShard extends Weapon {
   constructor(scene, player) {
     super(scene, player);
     this.name = "Icicle Shard";
-    this.description = "Shoots twin ice shards that slow enemies";
-    this.cooldownTime = 0.8;
-    this.damage = 15;
-    this.color = 0x00ffff;
+    this.description = "Fires sharp ice shards that slow enemies";
+    this.cooldownTime = 0.5;
+    this.damage = 10;
+    this.color = "#00ffff";
     this.category = WeaponCategory.ICE;
-    this.slowDuration = 3; // Seconds that enemies are slowed
-    this.slowAmount = 0.6; // Slow to 60% of original speed
-    this.projectileSpeed = 14; // Faster than normal projectiles
+    this.projectileSpeed = 15;
+    this.projectileSize = 0.3;
+    this.slowEffect = 0.5; // 50% slow
+    this.slowDuration = 3; // 3 seconds
   }
-  
-  fire() {
-    // Find the nearest enemy
-    const nearestEnemy = this.findNearestEnemy();
-    
-    if (nearestEnemy) {
-      // Calculate direction to the enemy
-      const direction = new THREE.Vector3()
-        .subVectors(nearestEnemy.mesh.position, this.player.mesh.position)
-        .normalize();
-      
-      // Create two projectiles with slight spread
-      const angle = 0.2; // Spread angle in radians
-      
-      // First projectile (slightly to the left)
-      const dir1 = direction.clone();
-      dir1.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-      const projectile1 = this.createIcicleProjectile(dir1);
-      
-      // Second projectile (slightly to the right)
-      const dir2 = direction.clone();
-      dir2.applyAxisAngle(new THREE.Vector3(0, 1, 0), -angle);
-      const projectile2 = this.createIcicleProjectile(dir2);
-    } else {
-      // If no enemies, fire forward
-      const forward = new THREE.Vector3(1, 0, 0);
-      
-      // Create two projectiles with spread
-      const angle = 0.2;
-      
-      const dir1 = forward.clone();
-      dir1.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-      const projectile1 = this.createIcicleProjectile(dir1);
-      
-      const dir2 = forward.clone();
-      dir2.applyAxisAngle(new THREE.Vector3(0, 1, 0), -angle);
-      const projectile2 = this.createIcicleProjectile(dir2);
-    }
-  }
-  
-  createIcicleProjectile(direction) {
-    // Create a custom icicle-shaped projectile
-    const geometry = new THREE.ConeGeometry(0.1, 0.5, 8);
-    const material = new THREE.MeshStandardMaterial({
+
+  createProjectile() {
+    const geometry = new THREE.ConeGeometry(this.projectileSize, this.projectileSize * 2, 8);
+    const material = new THREE.MeshPhongMaterial({
       color: this.color,
-      emissive: this.color,
-      emissiveIntensity: 0.8,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.8,
+      shininess: 100
     });
+    const mesh = new THREE.Mesh(geometry, material);
     
-    const projectile = new THREE.Mesh(geometry, material);
-    projectile.position.copy(this.player.mesh.position);
-    projectile.position.y = 0.05; // Slightly above the ground
+    // Position at player
+    mesh.position.copy(this.player.mesh.position);
     
-    // Orient the cone to point in the direction of movement
-    const axis = new THREE.Vector3(0, 1, 0);
-    const angle = Math.atan2(direction.x, direction.z);
-    projectile.rotation.y = angle;
-    projectile.rotation.x = Math.PI / 2; // Point the cone horizontally
+    // Get direction from player to mouse
+    const direction = new THREE.Vector3();
+    this.raycaster.setFromCamera(this.mouse, this.scene.camera);
+    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    const intersectPoint = new THREE.Vector3();
+    this.raycaster.ray.intersectPlane(plane, intersectPoint);
+    direction.subVectors(intersectPoint, this.player.mesh.position).normalize();
     
-    // Save direction for movement updates
-    projectile.direction = direction;
+    // Set rotation to face direction
+    mesh.lookAt(intersectPoint);
     
-    // Store damage value on the projectile
-    projectile.damage = this.damage;
+    // Add to scene
+    this.scene.add(mesh);
     
-    // Add special property for slow effect
-    projectile.slowEffect = {
-      duration: this.slowDuration,
-      amount: this.slowAmount
+    // Create projectile object
+    const projectile = {
+      mesh: mesh,
+      direction: direction,
+      speed: this.projectileSpeed,
+      damage: this.damage,
+      slowEffect: this.slowEffect,
+      slowDuration: this.slowDuration,
+      update: (delta) => {
+        mesh.position.addScaledVector(direction, this.projectileSpeed * delta);
+      },
+      checkCollisions: (enemies) => {
+        for (const enemy of enemies) {
+          const distance = mesh.position.distanceTo(enemy.mesh.position);
+          if (distance < enemy.radius + this.projectileSize) {
+            // Apply damage and slow effect
+            enemy.takeDamage(this.damage);
+            enemy.applySlow(this.slowEffect, this.slowDuration);
+            return true;
+          }
+        }
+        return false;
+      },
+      shouldRemove: () => {
+        // Remove if out of bounds
+        return Math.abs(mesh.position.x) > 50 || 
+               Math.abs(mesh.position.y) > 50;
+      },
+      dispose: () => {
+        this.scene.remove(mesh);
+        geometry.dispose();
+        material.dispose();
+      }
     };
     
-    this.scene.add(projectile);
     this.projectiles.push(projectile);
-    
-    return projectile;
-  }
-  
-  // Override the check collisions method to apply slow effect
-  checkCollisions(enemies) {
-    const hits = [];
-    
-    for (let i = this.projectiles.length - 1; i >= 0; i--) {
-      const projectile = this.projectiles[i];
-      
-      for (let j = 0; j < enemies.length; j++) {
-        const enemy = enemies[j];
-        
-        if (!enemy.isAlive) continue;
-        
-        const distance = new THREE.Vector3()
-          .subVectors(projectile.position, enemy.mesh.position)
-          .length();
-          
-        // If projectile hits an enemy
-        if (distance < 0.6) { // Combined radius of projectile and enemy
-          // Create special hit with slow effect
-          hits.push({
-            enemy,
-            damage: projectile.damage,
-            position: projectile.position.clone(),
-            slowEffect: projectile.slowEffect
-          });
-          
-          // Apply slow effect to enemy
-          if (enemy.applySlowEffect) {
-            enemy.applySlowEffect(projectile.slowEffect.duration, projectile.slowEffect.amount);
-          } else {
-            // If enemy doesn't have the method yet, add basic slowing capability
-            enemy.originalSpeed = enemy.originalSpeed || enemy.speed;
-            enemy.speed = enemy.originalSpeed * projectile.slowEffect.amount;
-            
-            // Reset speed after duration
-            setTimeout(() => {
-              if (enemy.isAlive) {
-                enemy.speed = enemy.originalSpeed;
-              }
-            }, projectile.slowEffect.duration * 1000);
-          }
-          
-          // Remove the projectile
-          this.scene.remove(projectile);
-          projectile.geometry.dispose();
-          projectile.material.dispose();
-          this.projectiles.splice(i, 1);
-          
-          break; // Projectile can only hit one enemy
-        }
-      }
-    }
-    
-    return hits;
   }
 } 
