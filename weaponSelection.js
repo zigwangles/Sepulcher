@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { getCategoryColor, getCategoryIcon, getCategoryDescription } from './baseWeapon.js';
+import { getCategoryColor, getCategoryIcon, getCategoryDescription } from './baseWeapon';
 
 export class WeaponSelectionMenu {
   constructor(container) {
