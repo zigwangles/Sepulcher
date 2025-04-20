@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Weapon, WeaponCategory } from '../weapon';
+import { Weapon, WeaponCategory } from '../baseWeapon.js';
 
 export class LeechingTendrilsWeapon extends Weapon {
   constructor(scene, player) {
