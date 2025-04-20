@@ -1,11 +1,11 @@
 import * as THREE from 'three';
-import { IcicleShard } from './weapons/icicleShard.js';
-import { FireStorm } from './weapons/fireStorm.js';
-import { ThunderboltsWeapon } from './weapons/thunderboltsWeapon.js';
-import { LightBeamWeapon } from './weapons/lightBeamWeapon.js';
-import { DarkTendrils } from './weapons/darkTendrilsWeapon.js';
-import { LeechingTendrils } from './weapons/leechingTendrilsWeapon.js';
-import { EarthWallWeapon } from './weapons/earthWallWeapon.js';
+import { IcicleShard } from './weapons/icicleShard';
+import { FireStorm } from './weapons/fireStorm';
+import { ThunderboltsWeapon } from './weapons/thunderboltsWeapon';
+import { LightBeamWeapon } from './weapons/lightBeamWeapon';
+import { DarkTendrils } from './weapons/darkTendrilsWeapon';
+import { LeechingTendrils } from './weapons/leechingTendrilsWeapon';
+import { EarthWallWeapon } from './weapons/earthWallWeapon';
 
 export class WeaponManager {
   constructor(scene, player, addDefaultWeapon = true) {
