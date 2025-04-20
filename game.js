@@ -103,6 +103,7 @@ export class Game {
   }
   
   start() {
+    console.log("Game starting...");
     this.isRunning = true;
     this.gameStartTime = performance.now() / 1000;
     this.lastTime = this.gameStartTime;
@@ -112,6 +113,7 @@ export class Game {
     this.hud.score = 0;
     this.hud.health = 100;
     this.hud.show();
+    console.log("HUD initialized");
     
     // Initialize FPS display based on settings
     if (this.settings.showFPS) {
@@ -121,11 +123,13 @@ export class Game {
     }
     
     this.enemyManager.clear(); // Clear any existing enemies
+    console.log("Enemies cleared");
     
     // Reset player position
     this.player.mesh.position.set(0, this.player.mesh.position.y, 0); 
     this.player.mesh.scale.set(1, 1, 1); // Reset any pulse scaling
     this.player.pulseTime = 0; // Reset pulse timer
+    console.log("Player position reset");
     
     this.isPaused = true; // Start paused for weapon selection
     
@@ -135,11 +139,14 @@ export class Game {
     // Reset weapons
     this.weaponManager.dispose();
     this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
+    console.log("Weapons reset");
     
     // Show starter weapon selection
     this.showStarterWeaponSelection();
+    console.log("Starter weapon selection shown");
     
     this.renderer.setAnimationLoop(this.update.bind(this));
+    console.log("Animation loop started");
   }
   
   stop() {
@@ -150,12 +157,17 @@ export class Game {
   }
   
   update(time) {
-    if (!this.isRunning) return;
+    if (!this.isRunning) {
+      console.log("Game not running, skipping update");
+      return;
+    }
+    
+    // Always render the scene, even when paused
+    this.renderer.render(this.scene, this.camera);
     
     // Don't update game logic if paused (e.g., weapon selection screen is open)
     if (this.isPaused) {
-      // Still render the scene, but don't update game state
-      this.renderer.render(this.scene, this.camera);
+      console.log("Game is paused, skipping game logic update");
       return;
     }
     
@@ -252,23 +264,29 @@ export class Game {
         this.showWeaponSelection();
       }
     }
-    
-    // Render the scene
-    this.renderer.render(this.scene, this.camera);
   }
   
   showWeaponSelection() {
+    console.log("Showing weapon selection...");
     this.isPaused = true;
     
     // Get available weapons from the weapon manager
     const availableWeapons = this.weaponManager.getAvailableWeapons();
+    console.log("Available weapons:", availableWeapons.length);
     
     // Define pause/resume logic once
-    const pauseGame = () => { this.isPaused = true; };
-    const resumeGame = () => { this.isPaused = false; };
+    const pauseGame = () => { 
+      this.isPaused = true;
+      console.log("Game paused");
+    };
+    const resumeGame = () => { 
+      this.isPaused = false;
+      console.log("Game resumed");
+    };
 
     // Show the weapon selection menu with pause/resume callbacks
     this.weaponSelectionMenu.show(availableWeapons, (selectedWeapon) => {
+      console.log("Weapon selected:", selectedWeapon.name);
       // Add the selected weapon to the player's arsenal
       this.weaponManager.addWeapon(selectedWeapon);
       
@@ -280,18 +298,27 @@ export class Game {
   }
   
   showStarterWeaponSelection() {
+    console.log("Showing starter weapon selection...");
     // Get random starter weapons
     const starterWeapons = this.weaponManager.getRandomStarterWeapons(3);
+    console.log("Starter weapons:", starterWeapons.length);
     
     // Define pause/resume logic once
-    const pauseGame = () => { this.isPaused = true; };
-    const resumeGame = () => { this.isPaused = false; };
+    const pauseGame = () => { 
+      this.isPaused = true;
+      console.log("Game paused for starter weapon selection");
+    };
+    const resumeGame = () => { 
+      this.isPaused = false;
+      console.log("Game resumed after starter weapon selection");
+    };
 
     // Show weapon selection with title for starter weapon
     this.weaponSelectionMenu.showWithTitle(
       starterWeapons, 
       'CHOOSE YOUR STARTER WEAPON', 
       (selectedWeapon) => {
+        console.log("Starter weapon selected:", selectedWeapon.name);
         // Add the selected weapon to the player's arsenal
         this.weaponManager.addWeapon(selectedWeapon);
         this.hasSelectedStarterWeapon = true;
