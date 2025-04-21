@@ -61,6 +61,13 @@ export class Weapon {
         // To be implemented by subclasses
     }
 
+    checkCollisions(enemies) {
+        // Default implementation for weapons where collisions
+        // are handled by projectiles in the update method.
+        // Subclasses can override this for non-projectile collisions (beams, AoE, etc.)
+        return [];
+    }
+
     dispose() {
         // Clean up all projectiles
         this.projectiles.forEach(projectile => projectile.dispose());
