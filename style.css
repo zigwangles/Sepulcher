@@ -8,6 +8,8 @@ body {
     width: 100vw;
     height: 100vh;
     display: block; /* Ensure it takes up space */
+    background-color: #ff00ff; /* TEMP: Magenta background for testing */
+    position: relative; /* Needed for absolute canvas positioning */
 }
 
 canvas {
