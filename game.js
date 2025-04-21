@@ -61,7 +61,6 @@ export class Game {
     this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 0.1, 1000);
     this.camera.position.set(0, 15, 0);
     this.camera.lookAt(0, 0, 0);
-    this.camera.rotation.x = -Math.PI / 2; // Look down at the plane
   }
   
   setupScene() {
@@ -157,6 +156,8 @@ export class Game {
       return;
     }
     
+    console.log(`Scene children: ${this.scene.children.length}`);
+
     // Always render the scene, even when paused
     this.renderer.render(this.scene, this.camera);
     
