@@ -133,14 +133,25 @@ export class WeaponSelectionMenu {
     card.style.minWidth = '150px';
     card.style.maxWidth = '250px';
     
+    // --- Helper function to get clean hex string ---
+    const getHexColorString = (colorValue) => {
+      if (typeof colorValue === 'string') {
+        return colorValue.startsWith('#') ? colorValue : '#' + colorValue;
+      } else if (typeof colorValue === 'number') {
+        return '#' + colorValue.toString(16).padStart(6, '0');
+      }
+      return '#ffffff'; // Default white if invalid
+    };
+    
     // Weapon icon (colored circle)
     const icon = document.createElement('div');
     icon.style.width = '50px';
     icon.style.height = '50px';
     icon.style.borderRadius = '50%';
-    icon.style.backgroundColor = '#' + weapon.color.toString(16).padStart(6, '0');
+    const iconColor = getHexColorString(weapon.color); // Use helper
+    icon.style.backgroundColor = iconColor;
     icon.style.marginBottom = '10px';
-    icon.style.boxShadow = `0 0 15px #${weapon.color.toString(16).padStart(6, '0')}`;
+    icon.style.boxShadow = `0 0 15px ${iconColor}`; // Use helper result
     
     // Weapon name
     const name = document.createElement('h3');
@@ -210,7 +221,13 @@ export class WeaponSelectionMenu {
     card.addEventListener('mouseover', () => {
       card.style.backgroundColor = 'rgba(40, 40, 80, 0.9)';
       card.style.transform = 'translateY(-5px)';
-      card.style.boxShadow = `0 5px 15px rgba(${weapon.color & 0xFF}, ${(weapon.color >> 8) & 0xFF}, ${(weapon.color >> 16) & 0xFF}, 0.5)`;
+      // Update shadow color based on weapon color using helper
+      const hoverColor = getHexColorString(weapon.color);
+      // Convert hex to RGB for rgba()
+      const r = parseInt(hoverColor.substring(1, 3), 16);
+      const g = parseInt(hoverColor.substring(3, 5), 16);
+      const b = parseInt(hoverColor.substring(5, 7), 16);
+      card.style.boxShadow = `0 5px 15px rgba(${r}, ${g}, ${b}, 0.5)`;
     });
     
     card.addEventListener('mouseout', () => {
