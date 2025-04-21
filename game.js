@@ -35,11 +35,8 @@ export class Game {
     this.inputHandler = new InputHandler(this.settings);
     this.hud = new HUD(container);
     this.enemyManager = new EnemyManager(this.scene, this.player);
-    this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
+    this.weaponManager = new WeaponManager(this.scene, this.player, true); // MODIFIED: Start WITH default weapon
     this.weaponSelectionMenu = new WeaponSelectionMenu(container);
-    
-    // Don't start with a weapon - we'll select one at game start
-    this.hasSelectedStarterWeapon = false;
     
     // Flag to track if the game is paused (e.g. when showing weapon selection)
     this.isPaused = false;
@@ -131,19 +128,17 @@ export class Game {
     this.player.pulseTime = 0; // Reset pulse timer
     console.log("Player position reset");
     
-    this.isPaused = true; // Start paused for weapon selection
-    
     // Re-apply player color from settings in case it changed
     this.player.applyColor(this.settings.getPlayerColorTHREE());
     
     // Reset weapons
     this.weaponManager.dispose();
-    this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
+    this.weaponManager = new WeaponManager(this.scene, this.player, true); // MODIFIED: Start WITH default weapon
     console.log("Weapons reset");
     
     // Show starter weapon selection
-    this.showStarterWeaponSelection();
-    console.log("Starter weapon selection shown");
+    // this.showStarterWeaponSelection(); // MODIFIED: Don't show selection
+    // console.log("Starter weapon selection shown");
     
     this.renderer.setAnimationLoop(this.update.bind(this));
     console.log("Animation loop started");
@@ -326,7 +321,6 @@ export class Game {
         console.log("Starter weapon selected:", selectedWeapon.name);
         // Add the selected weapon to the player's arsenal
         this.weaponManager.addWeapon(selectedWeapon);
-        this.hasSelectedStarterWeapon = true;
         
         // Push back enemies after selection
         this.pushbackEnemies();
