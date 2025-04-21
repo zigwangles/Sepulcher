@@ -121,23 +121,28 @@ export class Game {
       this.hud.fpsDisplay.style.display = 'none';
     }
     
+    this.enemyManager.clear(); // REVERTED: Uncommented
+    console.log("Enemies cleared"); // REVERTED: Uncommented
+    
     // Reset player position
     this.player.mesh.position.set(0, this.player.mesh.position.y, 0); 
     this.player.mesh.scale.set(1, 1, 1); // Reset any pulse scaling
     this.player.pulseTime = 0; // Reset pulse timer
     console.log("Player position reset");
     
+    this.isPaused = true; // REVERTED: Start paused again
+    
     // Re-apply player color from settings in case it changed
     this.player.applyColor(this.settings.getPlayerColorTHREE());
     
     // Reset weapons
-    // this.weaponManager.dispose(); // TEMP: Commented out
-    // this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
-    // console.log("Weapons reset");
+    this.weaponManager.dispose(); // REVERTED: Uncommented
+    this.weaponManager = new WeaponManager(this.scene, this.player, false); // REVERTED: Uncommented
+    console.log("Weapons reset"); // REVERTED: Uncommented
     
     // Show starter weapon selection
-    this.showStarterWeaponSelection(); // Keep showing selection
-    // console.log("Starter weapon selection shown");
+    this.showStarterWeaponSelection(); // REVERTED: Show selection again
+    console.log("Starter weapon selection shown"); // REVERTED
     
     this.renderer.setAnimationLoop(this.update.bind(this));
     console.log("Animation loop started");
@@ -147,7 +152,7 @@ export class Game {
     this.isRunning = false;
     this.hud.hide();
     this.renderer.setAnimationLoop(null);
-    // this.weaponManager.dispose();
+    this.weaponManager.dispose(); // REVERTED: Uncommented
   }
   
   update(time) {
@@ -157,6 +162,9 @@ export class Game {
     }
     
     console.log(`Scene children: ${this.scene.children.length}`);
+
+    // Force renderer state reset (might be overkill/inefficient, just for testing)
+    this.renderer.resetState();
 
     // Always render the scene, even when paused
     this.renderer.render(this.scene, this.camera);
