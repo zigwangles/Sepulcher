@@ -3,8 +3,8 @@ import { IcicleShard } from './weapons/icicleShard.js';
 import { FireStorm } from './weapons/fireStorm.js';
 import { ThunderboltsWeapon } from './weapons/thunderboltsWeapon.js';
 import { LightBeamWeapon } from './weapons/lightBeamWeapon.js';
-import { DarkTendrils } from './weapons/darkTendrilsWeapon.js';
-import { LeechingTendrils } from './weapons/leechingTendrilsWeapon.js';
+import { DarkTendrilsWeapon } from './weapons/darkTendrilsWeapon.js';
+import { LeechingTendrilsWeapon } from './weapons/leechingTendrilsWeapon.js';
 import { EarthWallWeapon } from './weapons/earthWallWeapon.js';
 
 export class WeaponManager {
@@ -21,8 +21,8 @@ export class WeaponManager {
         FireStorm,
         ThunderboltsWeapon,
         LightBeamWeapon,
-        DarkTendrils,
-        LeechingTendrils,
+        DarkTendrilsWeapon,
+        LeechingTendrilsWeapon,
         EarthWallWeapon
     ];
     
