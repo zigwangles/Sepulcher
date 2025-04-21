@@ -35,8 +35,11 @@ export class Game {
     this.inputHandler = new InputHandler(this.settings);
     this.hud = new HUD(container);
     this.enemyManager = new EnemyManager(this.scene, this.player);
-    this.weaponManager = new WeaponManager(this.scene, this.player, true); // MODIFIED: Start WITH default weapon
+    this.weaponManager = new WeaponManager(this.scene, this.player, false); // REVERTED: Don't add default weapon
     this.weaponSelectionMenu = new WeaponSelectionMenu(container);
+    
+    // Don't start with a weapon - we'll select one at game start
+    this.hasSelectedStarterWeapon = false; // REVERTED: Add flag back
     
     // Flag to track if the game is paused (e.g. when showing weapon selection)
     this.isPaused = false;
@@ -118,9 +121,6 @@ export class Game {
       this.hud.fpsDisplay.style.display = 'none';
     }
     
-    this.enemyManager.clear(); // Clear any existing enemies
-    console.log("Enemies cleared");
-    
     // Reset player position
     this.player.mesh.position.set(0, this.player.mesh.position.y, 0); 
     this.player.mesh.scale.set(1, 1, 1); // Reset any pulse scaling
@@ -131,12 +131,12 @@ export class Game {
     this.player.applyColor(this.settings.getPlayerColorTHREE());
     
     // Reset weapons
-    this.weaponManager.dispose();
-    this.weaponManager = new WeaponManager(this.scene, this.player, true); // MODIFIED: Start WITH default weapon
-    console.log("Weapons reset");
+    // this.weaponManager.dispose(); // TEMP: Commented out
+    // this.weaponManager = new WeaponManager(this.scene, this.player, false); // Don't add default weapon
+    // console.log("Weapons reset");
     
     // Show starter weapon selection
-    // this.showStarterWeaponSelection(); // MODIFIED: Don't show selection
+    this.showStarterWeaponSelection(); // Keep showing selection
     // console.log("Starter weapon selection shown");
     
     this.renderer.setAnimationLoop(this.update.bind(this));
@@ -147,7 +147,7 @@ export class Game {
     this.isRunning = false;
     this.hud.hide();
     this.renderer.setAnimationLoop(null);
-    this.weaponManager.dispose();
+    // this.weaponManager.dispose();
   }
   
   update(time) {
