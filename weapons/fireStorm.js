@@ -178,6 +178,11 @@ export class FireStorm extends Weapon {
 
     update(delta) {
         super.update(delta);
+
+        // Call fire() if cooldown is ready
+        if (this.cooldown <= 0) {
+            this.fire();
+        }
     }
 
     dispose() {
