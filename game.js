@@ -161,7 +161,7 @@ export class Game {
       return;
     }
     
-    console.log(`Scene children: ${this.scene.children.length}`);
+    // console.log(`Scene children: ${this.scene.children.length}`);
 
     // Force renderer state reset (might be overkill/inefficient, just for testing)
     this.renderer.resetState();
@@ -176,7 +176,7 @@ export class Game {
     }
     
     // --- Game Logic Starts Here ---
-    console.log(`Update loop running: time=${time.toFixed(2)}, isPaused=${this.isPaused}`);
+    // console.log(`Update loop running: time=${time.toFixed(2)}, isPaused=${this.isPaused}`);
     
     const timeMs = time;
     const delta = (timeMs - this.lastTime) / 1000;
@@ -197,10 +197,10 @@ export class Game {
     this.player.move(direction, delta);
     
     // Update camera to follow player
-    console.log(`Player Pos: x=${this.player.mesh.position.x.toFixed(2)}, z=${this.player.mesh.position.z.toFixed(2)}`);
+    // console.log(`Player Pos: x=${this.player.mesh.position.x.toFixed(2)}, z=${this.player.mesh.position.z.toFixed(2)}`);
     this.camera.position.x = this.player.mesh.position.x;
     this.camera.position.z = this.player.mesh.position.z;
-    console.log(`Camera Pos: x=${this.camera.position.x.toFixed(2)}, y=${this.camera.position.y.toFixed(2)}, z=${this.camera.position.z.toFixed(2)}`);
+    // console.log(`Camera Pos: x=${this.camera.position.x.toFixed(2)}, y=${this.camera.position.y.toFixed(2)}, z=${this.camera.position.z.toFixed(2)}`);
     
     // Update grid sections based on player position
     this.gridManager.update(this.player.mesh.position);
