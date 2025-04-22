@@ -48,10 +48,10 @@ export class InputHandler {
   }
   
   getDirection() {
-    const direction = { x: 0, y: 0 };
+    const direction = { x: 0, z: 0 };
     
-    if (this.activeKeys.has(this.settings.keybinds.up) || this.activeKeys.has('ArrowUp')) direction.y = -1;
-    if (this.activeKeys.has(this.settings.keybinds.down) || this.activeKeys.has('ArrowDown')) direction.y = 1;
+    if (this.activeKeys.has(this.settings.keybinds.up) || this.activeKeys.has('ArrowUp')) direction.z = -1;
+    if (this.activeKeys.has(this.settings.keybinds.down) || this.activeKeys.has('ArrowDown')) direction.z = 1;
     if (this.activeKeys.has(this.settings.keybinds.left) || this.activeKeys.has('ArrowLeft')) direction.x = -1;
     if (this.activeKeys.has(this.settings.keybinds.right) || this.activeKeys.has('ArrowRight')) direction.x = 1;
     
@@ -61,13 +61,13 @@ export class InputHandler {
       const threshold = 20;
       
       let touchX = 0;
-      let touchY = 0;
+      let touchZ = 0;
       if (Math.abs(dx) > threshold) touchX = Math.sign(dx);
-      if (Math.abs(dy) > threshold) touchY = Math.sign(dy);
+      if (Math.abs(dy) > threshold) touchZ = Math.sign(dy);
 
-      if (direction.x === 0 && direction.y === 0) {
+      if (direction.x === 0 && direction.z === 0) {
           direction.x = touchX;
-          direction.y = touchY; 
+          direction.z = touchZ;
       }
     }
     
