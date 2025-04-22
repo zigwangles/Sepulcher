@@ -71,6 +71,8 @@ export class FireStorm extends Weapon {
             mesh: particles,
             startTime: Date.now(),
             update: (delta) => {
+                particles.position.copy(this.player.mesh.position);
+
                 // Rotate particles
                 particles.rotation.y += delta * 2;
                 
