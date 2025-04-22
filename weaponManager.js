@@ -66,6 +66,7 @@ export class WeaponManager {
   
   // Add a new weapon to the player's arsenal
   addWeapon(weapon) {
+    console.log(`[WeaponManager] Adding weapon: ${weapon.name}`);
     // Ensure weapon is properly initialized
     if (weapon && typeof weapon.initialize === 'function') {
       weapon.initialize();
