@@ -289,8 +289,10 @@ export class Game {
       console.log("Game paused");
     };
     const resumeGame = () => { 
-      this.isPaused = false;
-      console.log("Game resumed");
+      setTimeout(() => {
+        this.isPaused = false;
+        console.log("Game resumed (with delay)");
+      }, 50); // 50ms delay
     };
 
     // Show the weapon selection menu with pause/resume callbacks
@@ -318,8 +320,10 @@ export class Game {
       console.log("Game paused for starter weapon selection");
     };
     const resumeGame = () => { 
-      this.isPaused = false;
-      console.log("Game resumed after starter weapon selection");
+      setTimeout(() => {
+        this.isPaused = false;
+        console.log("Game resumed after starter weapon selection (with delay)");
+      }, 50); // 50ms delay
     };
 
     // Show weapon selection with title for starter weapon
