@@ -327,6 +327,7 @@ export class Game {
       starterWeapons, 
       'CHOOSE YOUR STARTER WEAPON', 
       (selectedWeapon) => {
+        console.log("[Game] Starter weapon selection callback triggered for:", selectedWeapon.name);
         console.log("Starter weapon selected:", selectedWeapon.name);
         // Add the selected weapon to the player's arsenal
         this.weaponManager.addWeapon(selectedWeapon);
