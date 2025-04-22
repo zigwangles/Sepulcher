@@ -107,6 +107,11 @@ export class FireStorm extends Weapon {
     update(delta) {
         super.update(delta);
         
+        // Attempt to fire if cooldown is ready and not already active
+        if (this.cooldown <= 0 && !this.isActive) {
+          this.fire();
+        }
+        
         // Update fire storm particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const particle = this.particles[i];
