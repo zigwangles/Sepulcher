@@ -5,131 +5,182 @@ export class FireStorm extends Weapon {
     constructor(scene, player) {
         super(scene, player);
         this.name = 'Fire Storm';
-        this.description = 'Creates a storm of fire that damages enemies over time';
-        this.cooldownTime = 2;
-        this.damage = 5;
+        this.description = 'Shoots a fiery ball that leaves a trail of damaging fire';
+        this.cooldownTime = 1.5;
+        this.damage = 8;
         this.color = '#ff4400';
         this.category = WeaponCategory.FIRE;
-        this.duration = 5;
-        this.radius = 5;
-        this.particleCount = 50;
-        this.particles = [];
-        this.isActive = false;
-        this.startTime = 0;
+        
+        this.projectileSpeed = 10;
+        this.projectileSize = 0.5;
     }
 
     fire() {
-        if (this.cooldown <= 0 && !this.isActive) {
-            this.isActive = true;
-            this.startTime = Date.now();
-            this.createFireStorm();
+        if (this.cooldown <= 0) {
+            this.createProjectile();
             this.cooldown = this.cooldownTime;
-            this.lastFired = Date.now();
         }
     }
 
-    createFireStorm() {
-        // Create particle system
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(this.particleCount * 3);
-        const colors = new Float32Array(this.particleCount * 3);
+    createProjectile() {
+        // console.log("[FireStorm] Firing projectile (implementation pending)");
+        // --- Projectile Creation Logic ---
         
-        for (let i = 0; i < this.particleCount; i++) {
-            const i3 = i * 3;
-            // Random position within radius
-            const angle = Math.random() * Math.PI * 2;
-            const radius = Math.random() * this.radius;
-            positions[i3] = Math.cos(angle) * radius;
-            positions[i3 + 1] = 0;
-            positions[i3 + 2] = Math.sin(angle) * radius;
-            
-            // Color gradient from orange to red
-            const color = new THREE.Color();
-            color.setHSL(0.05 + Math.random() * 0.05, 1, 0.5);
-            colors[i3] = color.r;
-            colors[i3 + 1] = color.g;
-            colors[i3 + 2] = color.b;
-        }
-        
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        
-        const material = new THREE.PointsMaterial({
-            size: 0.2,
-            vertexColors: true,
-            transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
-        });
-        
-        const particles = new THREE.Points(geometry, material);
-        particles.position.copy(this.player.mesh.position);
-        this.scene.add(particles);
-        
-        // Store particle system
-        this.particles.push({
-            mesh: particles,
-            startTime: Date.now(),
-            update: (delta) => {
-                particles.position.copy(this.player.mesh.position);
+        // 1. Find the nearest enemy
+        let nearestEnemy = null;
+        let minDistanceSq = Infinity;
+        const searchRadiusSq = 15 * 15; // Only target enemies within 15 units
 
-                // Rotate particles
-                particles.rotation.y += delta * 2;
-                
-                // Update particle positions
-                const positions = particles.geometry.attributes.position.array;
-                for (let i = 0; i < positions.length; i += 3) {
-                    positions[i + 1] += Math.random() * delta * 2; // Rise up
+        // Access enemies globally (set by WeaponManager)
+        const enemies = window.gameEnemies || []; 
+        
+        for (const enemy of enemies) {
+            const distanceSq = this.player.mesh.position.distanceToSquared(enemy.mesh.position);
+            if (distanceSq < minDistanceSq && distanceSq <= searchRadiusSq) {
+                minDistanceSq = distanceSq;
+                nearestEnemy = enemy;
+            }
+        }
+
+        // Only fire if an enemy is found within range
+        if (!nearestEnemy) {
+            // console.log("[FireStorm] No nearby enemy to target.");
+            return; 
+        }
+
+        // 2. Calculate Direction to nearest enemy
+        const direction = new THREE.Vector3();
+        direction.subVectors(nearestEnemy.mesh.position, this.player.mesh.position).normalize();
+
+        // 3. Create Geometry & Material
+        const geometry = new THREE.SphereGeometry(this.projectileSize, 16, 8);
+        const material = new THREE.MeshBasicMaterial({ // Use BasicMaterial for a bright, glowing effect
+            color: this.color,
+            transparent: true, // Optional: for softer edges?
+            opacity: 0.9,      // Optional
+        });
+
+        // 4. Create Mesh
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.copy(this.player.mesh.position);
+        // Adjust Y slightly so it doesn't start inside the floor/player
+        mesh.position.y += 0.5; 
+
+        // 5. Add mesh to scene
+        this.scene.add(mesh);
+
+        // 6. Create projectile object
+        const projectile = {
+            mesh: mesh,
+            direction: direction,
+            speed: this.projectileSpeed,
+            damage: this.damage, // Placeholder for potential direct hit damage
+            lifeTime: 3, // Projectile lives for 3 seconds
+            spawnTime: Date.now(),
+            // --- Trail properties ---
+            trailParticles: [],
+            trailCooldown: 0.1, // Spawn trail particle every 0.1s
+            trailTimer: 0,
+            trailParticleDuration: 1.5, // How long each trail particle lasts
+            trailParticleSize: 0.3,
+            trailDamage: 2, // Damage per trail particle tick (adjust as needed)
+
+            update: (delta) => {
+                // Move projectile
+                mesh.position.addScaledVector(direction, projectile.speed * delta);
+
+                // --- Trail Spawning Logic ---
+                projectile.trailTimer -= delta;
+                if (projectile.trailTimer <= 0) {
+                    projectile.trailTimer = projectile.trailCooldown;
+                    // Spawn a trail particle
+                    const trailGeo = new THREE.SphereGeometry(projectile.trailParticleSize, 8, 4);
+                    const trailMat = new THREE.MeshBasicMaterial({
+                        color: 0xff8800, // Lighter orange/yellow for trail
+                        transparent: true,
+                        opacity: 0.7
+                    });
+                    const trailMesh = new THREE.Mesh(trailGeo, trailMat);
+                    trailMesh.position.copy(mesh.position);
+                    this.scene.add(trailMesh);
+
+                    const trailParticle = {
+                        mesh: trailMesh,
+                        spawnTime: Date.now(),
+                        duration: projectile.trailParticleDuration,
+                        damage: projectile.trailDamage,
+                        update: (trailDelta) => {
+                            // Optional: Fade out, shrink, etc.
+                            const lifeRatio = (Date.now() - trailParticle.spawnTime) / (trailParticle.duration * 1000);
+                            trailMesh.material.opacity = Math.max(0, 0.7 * (1 - lifeRatio));
+                            // trailMesh.scale.setScalar(Math.max(0.1, 1 - lifeRatio)); // Shrink
+                        },
+                        dispose: () => {
+                            this.scene.remove(trailMesh);
+                            trailGeo.dispose();
+                            trailMat.dispose();
+                        }
+                    };
+                    projectile.trailParticles.push(trailParticle);
                 }
-                particles.geometry.attributes.position.needsUpdate = true;
                 
-                // Check for enemy collisions
-                this.checkEnemyCollisions(particles.position);
+                // Update existing trail particles
+                for (let i = projectile.trailParticles.length - 1; i >= 0; i--) {
+                    const tp = projectile.trailParticles[i];
+                    tp.update(delta);
+                    // Damage check for trail particles
+                    for (const enemy of window.gameEnemies || []) {
+                         const distSq = tp.mesh.position.distanceToSquared(enemy.mesh.position);
+                         if (distSq < (enemy.radius + projectile.trailParticleSize) ** 2) {
+                             enemy.takeDamage(tp.damage * delta); // Apply DPS based on trail damage
+                         }
+                    }
+                    // Remove old trail particles
+                    if (Date.now() - tp.spawnTime > tp.duration * 1000) {
+                        tp.dispose();
+                        projectile.trailParticles.splice(i, 1);
+                    }
+                }
             },
+            
+            checkCollisions: (enemies) => {
+                // Main projectile collision (optional - maybe trail does all damage?)
+                for (const enemy of enemies) {
+                    const distanceSq = mesh.position.distanceToSquared(enemy.mesh.position);
+                    if (distanceSq < (enemy.radius + this.projectileSize) ** 2) {
+                        // enemy.takeDamage(projectile.damage); // Apply direct hit damage?
+                        // projectile.dispose(); // Dispose main projectile on hit
+                        // return true; // Collision detected
+                    }
+                }
+                return false; // No collision
+            },
+            
             shouldRemove: () => {
-                return Date.now() - this.startTime > this.duration * 1000;
+                // Remove if lifetime exceeded
+                return Date.now() - projectile.spawnTime > projectile.lifeTime * 1000;
             },
+            
             dispose: () => {
-                this.scene.remove(particles);
+                // Dispose main projectile mesh
+                this.scene.remove(mesh);
                 geometry.dispose();
                 material.dispose();
+                // Dispose all remaining trail particles
+                projectile.trailParticles.forEach(tp => tp.dispose());
+                projectile.trailParticles = [];
             }
-        });
-    }
-
-    checkEnemyCollisions(center) {
-        for (const enemy of window.gameEnemies) {
-            const distance = center.distanceTo(enemy.mesh.position);
-            if (distance < this.radius + enemy.radius) {
-                enemy.takeDamage(this.damage * 0.1); // Damage per frame
-            }
-        }
+        };
+        
+        // 7. Add projectile object to manager
+        this.projectiles.push(projectile);
     }
 
     update(delta) {
         super.update(delta);
-        
-        // Attempt to fire if cooldown is ready and not already active
-        if (this.cooldown <= 0 && !this.isActive) {
-          this.fire();
-        }
-        
-        // Update fire storm particles
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-            const particle = this.particles[i];
-            particle.update(delta);
-            
-            if (particle.shouldRemove()) {
-                particle.dispose();
-                this.particles.splice(i, 1);
-                this.isActive = false;
-            }
-        }
     }
 
     dispose() {
         super.dispose();
-        this.particles.forEach(particle => particle.dispose());
-        this.particles = [];
     }
 } 
